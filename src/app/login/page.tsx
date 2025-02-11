@@ -62,11 +62,8 @@ export default function LoginPage() {
                   ou
                 </span>
               </div>
-              <Button
-                variant="outline"
-                className="w-full border-[#3B5578] text-[#3B5578] hover:bg-[#3B5578] hover:text-white"
-              >
-                CADASTRE-SE
+              <Button variant="outline" className="w-full border-[#3B5578] text-[#3B5578] hover:bg-[#3B5578] hover:text-white" asChild>
+              <Link href="/cadastro">CADASTRE-SE</Link>
               </Button>
             </CardContent>
           </Card>

@@ -30,7 +30,7 @@ export default function Home() {
             <Link href="#" className="hover:opacity-80">
               Contato
             </Link>
-            <Link href="#" className="hover:opacity-80">
+            <Link href="/login" className="hover:opacity-80">
               Login
             </Link>
           </div>
