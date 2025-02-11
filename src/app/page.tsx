@@ -265,7 +265,7 @@ export default function Home() {
               <ul className="space-y-2">
                 <li>contato@e-coleta.com</li>
                 <li>(11) 1234-5678</li>
-                <li>Rua da Reciclagem, 123</li>
+                <li>Rua da Reciclagem, 12</li>
                 <li>São Paulo, SP</li>
               </ul>
             </div>
