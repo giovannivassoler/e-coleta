@@ -12,8 +12,6 @@ export default async function CadastroPage() {
     id: usersTable.id,
   }).from(usersTable);*/ 
 
-  const dados2 = await db.query.usersTable.findFirst();
-
   return (
     <div className="min-h-screen flex flex-col">
       {/* Header */}
@@ -31,16 +29,13 @@ export default async function CadastroPage() {
         {/* Left Side - Logo */}
         <div className="hidden lg:flex items-center justify-center bg-gradient-to-r from-[#3C6499] to-[#375377] p-8">
           <div className="text-white text-4xl font-bold text-center">
-            {/* <Image
+            <Image
               src="/imagens/logo-full-branco.png"
               alt="E-COLETA logo"
               width={500}
               height={600}
               className="object-contain"
-            /> */}
-
-            {JSON.stringify(dados2)}
-
+            />
           </div>
         </div>
 

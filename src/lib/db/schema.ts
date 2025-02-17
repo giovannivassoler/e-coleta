@@ -1,4 +1,4 @@
-import { pgTable, varchar, char, integer, date, primaryKey, uuid } from "drizzle-orm/pg-core";
+import { pgTable, varchar, char, date, uuid } from "drizzle-orm/pg-core";
 
 // Tabela tb_usuario
 export const usersTable = pgTable("tb_usuario", {
