@@ -1,9 +1,9 @@
-import Link from "next/link"
-import Image from "next/image"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Separator } from "@/components/ui/separator"
+import Link from "next/link";
+import Image from "next/image";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 
 export default function LoginPage() {
   return (
@@ -24,12 +24,12 @@ export default function LoginPage() {
         <div className="hidden lg:flex items-center justify-center bg-gradient-to-r from-[#3C6499] to-[#375377] p-8">
           <div className="text-white text-4xl font-bold text-center">
             <Image
-                            src="/imagens/logo-full-branco.png"
-                            alt="Delivery van with person"
-                            width={500}
-                            height={600}
-                            className="object-contain"
-                          />
+              src="/imagens/logo-full-branco.png"
+              alt="Delivery van with person"
+              width={500}
+              height={600}
+              className="object-contain"
+            />
           </div>
         </div>
 
@@ -52,25 +52,32 @@ export default function LoginPage() {
                 </label>
                 <Input id="password" type="password" required />
               </div>
-              <Link href="/forgot-password" className="text-sm text-blue-600 hover:underline block">
+              <Link
+                href="/forgot-password"
+                className="text-sm text-blue-600 hover:underline block"
+              >
                 Esqueci minha senha
               </Link>
-              <Button className="w-full bg-[#3B5578] hover:bg-[#2f4460]">ENTRE</Button>
+              <Button className="w-full bg-[#3B5578] hover:bg-[#2f4460]">
+                ENTRE
+              </Button>
               <div className="relative my-4">
                 <Separator />
                 <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-white px-2 text-sm text-muted-foreground">
                   ou
                 </span>
               </div>
-              <Button variant="outline" className="w-full border-[#3B5578] text-[#3B5578] hover:bg-[#3B5578] hover:text-white" asChild>
-              <Link href="/cadastro">CADASTRE-SE</Link>
+              <Button
+                variant="outline"
+                className="w-full border-[#3B5578] text-[#3B5578] hover:bg-[#3B5578] hover:text-white"
+                asChild
+              >
+                <Link href="/cadastro">CADASTRE-SE</Link>
               </Button>
             </CardContent>
           </Card>
         </div>
       </main>
     </div>
-    
-  )
+  );
 }
-
