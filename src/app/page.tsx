@@ -1,5 +1,7 @@
+"use client";
 import Image from "next/image";
 import Link from "next/link";
+import { UserButton } from "./componentes";
 
 export default function Home() {
   return (
@@ -31,9 +33,7 @@ export default function Home() {
             <Link href="#" className="hover:opacity-80">
               Contato
             </Link>
-            <Link href="/login" className="hover:opacity-80">
-              Login
-            </Link>
+            <UserButton />
           </div>
         </div>
       </nav>

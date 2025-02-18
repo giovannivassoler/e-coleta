@@ -1,15 +1,56 @@
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { db } from "@/lib/db/client";
-import { usersTable } from "@/lib/db/schema";
+import { signUp } from "@/lib/auth/client";
+import { updateUsuario } from "./funcoes";
+import { useRouter } from "next/navigation";
 
-export default async function CadastroPage() {
+export default function CadastroPage() {
   /*const dados = db.select({
     id: usersTable.id,
   }).from(usersTable);*/
+
+  const router = useRouter();
+
+  async function cadastrarUsuario(formData: FormData) {
+    const nomeCompleto = formData.get("nomeCompleto");
+    const cpf = formData.get("cpf");
+    const telefone = formData.get("telefone");
+    const email = formData.get("email");
+    const senha = formData.get("senha");
+
+    if (senha !== formData.get("confirmarSenha")) {
+      return;
+    }
+
+    if (
+      typeof nomeCompleto !== "string" ||
+      typeof cpf !== "string" ||
+      typeof telefone !== "string" ||
+      typeof email !== "string" ||
+      typeof senha !== "string"
+    ) {
+      return;
+    }
+
+    await signUp.email(
+      {
+        email,
+        password: senha,
+        name: nomeCompleto,
+      },
+      {
+        onSuccess: async () => {
+          await updateUsuario(telefone, cpf, email);
+          router.push("/");
+        },
+      }
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -46,38 +87,10 @@ export default async function CadastroPage() {
             </CardHeader>
             <CardContent>
               <form
-                action={async (formData: FormData) => {
-                  "use server";
-                  const nomeCompleto = formData.get("nomeCompleto");
-                  const cpf = formData.get("cpf");
-                  const telefone = formData.get("telefone");
-                  const email = formData.get("email");
-                  const senha = formData.get("senha");
-
-                  if (senha !== formData.get("confirmarSenha")) {
-                    return;
-                  }
-
-                  if (
-                    typeof nomeCompleto !== "string" ||
-                    typeof cpf !== "string" ||
-                    typeof telefone !== "string" ||
-                    typeof email !== "string" ||
-                    typeof senha !== "string"
-                  ) {
-                    return;
-                  }
-
-                  await db
-                    .insert(usersTable)
-                    .values({
-                      nome_usu: nomeCompleto,
-                      cpf_usu: cpf,
-                      tel_usu: telefone,
-                      email_usu: email,
-                      senha_usu: senha,
-                    })
-                    .execute();
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  const formData = new FormData(e.currentTarget);
+                  cadastrarUsuario(formData);
                 }}
               >
                 <div className="space-y-2">

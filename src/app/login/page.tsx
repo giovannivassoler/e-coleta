@@ -1,11 +1,38 @@
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { signIn } from "@/lib/auth/client";
+import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
+  const router = useRouter();
+
+  async function validarUsuario(formData: FormData) {
+    const email = formData.get("email");
+    const senha = formData.get("senha");
+
+    if (typeof email !== "string" || typeof senha !== "string") {
+      return;
+    }
+
+    await signIn.email(
+      {
+        email,
+        password: senha,
+      },
+      {
+        onSuccess: async () => {
+          router.push("/");
+        },
+      }
+    );
+  }
+
   return (
     <div className="min-h-screen flex flex-col">
       {/* Header */}
@@ -40,40 +67,48 @@ export default function LoginPage() {
               <CardTitle className="text-2xl font-bold">Entre</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <label htmlFor="email" className="text-sm font-medium">
-                  Email
-                </label>
-                <Input id="email" type="email" required />
-              </div>
-              <div className="space-y-2">
-                <label htmlFor="password" className="text-sm font-medium">
-                  Senha
-                </label>
-                <Input id="password" type="password" required />
-              </div>
-              <Link
-                href="/forgot-password"
-                className="text-sm text-blue-600 hover:underline block"
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  const formData = new FormData(e.currentTarget);
+                  validarUsuario(formData);
+                }}
               >
-                Esqueci minha senha
-              </Link>
-              <Button className="w-full bg-[#3B5578] hover:bg-[#2f4460]">
-                ENTRE
-              </Button>
-              <div className="relative my-4">
-                <Separator />
-                <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-white px-2 text-sm text-muted-foreground">
-                  ou
-                </span>
-              </div>
-              <Button
-                variant="outline"
-                className="w-full border-[#3B5578] text-[#3B5578] hover:bg-[#3B5578] hover:text-white"
-                asChild
-              >
-                <Link href="/cadastro">CADASTRE-SE</Link>
-              </Button>
+                <div className="space-y-2">
+                  <label htmlFor="email" className="text-sm font-medium">
+                    Email
+                  </label>
+                  <Input id="email" type="email" name="email" required />
+                </div>
+                <div className="space-y-2">
+                  <label htmlFor="password" className="text-sm font-medium">
+                    Senha
+                  </label>
+                  <Input id="password" type="password" name="senha" required />
+                </div>
+                <Link
+                  href="/forgot-password"
+                  className="text-sm text-blue-600 hover:underline block"
+                >
+                  Esqueci minha senha
+                </Link>
+                <Button className="w-full bg-[#3B5578] hover:bg-[#2f4460]">
+                  ENTRE
+                </Button>
+                <div className="relative my-4">
+                  <Separator />
+                  <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-white px-2 text-sm text-muted-foreground">
+                    ou
+                  </span>
+                </div>
+                <Button
+                  variant="outline"
+                  className="w-full border-[#3B5578] text-[#3B5578] hover:bg-[#3B5578] hover:text-white"
+                  asChild
+                >
+                  <Link href="/cadastro">CADASTRE-SE</Link>
+                </Button>
+              </form>
             </CardContent>
           </Card>
         </div>
