@@ -8,14 +8,23 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { signUp } from "@/lib/auth/client";
 import { updateUsuario } from "./funcoes";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 export default function CadastroPage() {
-  /*const dados = db.select({
-    id: usersTable.id,
-  }).from(usersTable);*/
-
   const router = useRouter();
 
+  // Verificar Senha
+  const [senha, setSenha] = useState("");
+  const [confirmarSenha, setConfirmarSenha] = useState("");
+  const [isSenhaLonga, setIsSenhaLonga] = useState(false);
+  const [isLoading, setIsLoading] = useState(false); // Estado para controle de loading
+
+  // Validar Senha
+  const validarSenha = (senha: string) => {
+    setIsSenhaLonga(senha.length >= 8);
+  };
+
+  // Função de cadastro
   async function cadastrarUsuario(formData: FormData) {
     const nomeCompleto = formData.get("nomeCompleto");
     const cpf = formData.get("cpf");
@@ -37,6 +46,8 @@ export default function CadastroPage() {
       return;
     }
 
+    setIsLoading(true); // Inicia o loading
+
     await signUp.email(
       {
         email,
@@ -46,6 +57,7 @@ export default function CadastroPage() {
       {
         onSuccess: async () => {
           await updateUsuario(telefone, cpf, email);
+          setIsLoading(false); // Finaliza o loading
           router.push("/");
         },
       }
@@ -127,7 +139,17 @@ export default function CadastroPage() {
                     <label htmlFor="senha" className="text-sm font-medium">
                       Senha
                     </label>
-                    <Input id="senha" name="senha" type="password" required />
+                    <Input
+                      id="senha"
+                      name="senha"
+                      type="password"
+                      value={senha}
+                      onChange={(e) => {
+                        setSenha(e.target.value);
+                        validarSenha(e.target.value);
+                      }}
+                      required
+                    />
                   </div>
                   <div className="space-y-2">
                     <label
@@ -140,13 +162,40 @@ export default function CadastroPage() {
                       id="confirmarSenha"
                       name="confirmarSenha"
                       type="password"
+                      value={confirmarSenha}
+                      onChange={(e) => setConfirmarSenha(e.target.value)}
                       required
                     />
                   </div>
                 </div>
-                <Button className="w-full bg-[#3B5578] hover:bg-[#2f4460]">
-                  Cadastrar
-                </Button>
+                <br></br>
+                {/* Requisitos Senha */}
+                <div className="text-sm text-gray-500 mt-1">
+                  <p
+                    className={`${
+                      isSenhaLonga ? "text-green-500" : "text-red-500"
+                    }`}
+                  >
+                    {isSenhaLonga
+                      ? "A senha tem mais de 8 caracteres."
+                      : "A senha deve ter mais de 8 caracteres."}
+                  </p>
+                </div>
+                <br></br>
+
+                {/* Loading Indicator */}
+                {isLoading ? (
+                  <div className="flex justify-center mt-4">
+                    <div className="animate-spin border-4 border-t-4 border-blue-500 rounded-full w-8 h-8"></div>
+                  </div>
+                ) : (
+                  <Button
+                    className="w-full bg-[#3B5578] hover:bg-[#2f4460]"
+                    disabled={senha !== confirmarSenha || senha.trim() === ""}
+                  >
+                    Cadastrar
+                  </Button>
+                )}
               </form>
             </CardContent>
           </Card>
