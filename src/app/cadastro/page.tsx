@@ -6,33 +6,143 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { signUp } from "@/lib/auth/client";
-import { updateUsuario } from "./funcoes";
+import {
+  updateUsuario,
+  VerificarCPF,
+  VerificarEmail,
+  VerificarTelefone,
+} from "./funcoes";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 export default function CadastroPage() {
   const router = useRouter();
 
-  // Verificar Senha
   const [senha, setSenha] = useState("");
   const [confirmarSenha, setConfirmarSenha] = useState("");
+  const [cpf, setCpf] = useState("");
+  const [email, setEmail] = useState("");
   const [isSenhaLonga, setIsSenhaLonga] = useState(false);
-  const [isLoading, setIsLoading] = useState(false); // Estado para controle de loading
+  const [isCpfValido, setIsCpfValido] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
+  const [telefone, setTelefone] = useState("");
+  const [cpfExistente, setCpfExistente] = useState<boolean | null>(null);
+  const [emailExistente, setEmailExistente] = useState<boolean | null>(null);
+  const [telefoneExistente, setTelefoneExistente] = useState<boolean | null>(
+    null
+  );
+  const [emailTimeout, setEmailTimeout] = useState<NodeJS.Timeout | null>(null);
+  const [telefoneTimeout, setTelefoneTimeout] = useState<NodeJS.Timeout | null>(
+    null
+  );
 
   // Validar Senha
   const validarSenha = (senha: string) => {
     setIsSenhaLonga(senha.length >= 8);
   };
 
+  // Validar CPF
+  function validarCPF(cpf: string) {
+    cpf = cpf.replace(/\D/g, "");
+    if (cpf.length !== 11 || /^(\d)\1+$/.test(cpf)) {
+      setIsCpfValido(false);
+      return false;
+    }
+    let soma = 0,
+      resto;
+    for (let i = 1; i <= 9; i++) soma += Number.parseInt(cpf[i - 1]) * (11 - i);
+    resto = (soma * 10) % 11;
+    if (resto === 10 || resto === 11) resto = 0;
+    if (resto !== Number.parseInt(cpf[9])) {
+      setIsCpfValido(false);
+      return false;
+    }
+    soma = 0;
+    for (let i = 1; i <= 10; i++)
+      soma += Number.parseInt(cpf[i - 1]) * (12 - i);
+    resto = (soma * 10) % 11;
+    if (resto === 10 || resto === 11) resto = 0;
+    if (resto !== Number.parseInt(cpf[10])) {
+      setIsCpfValido(false);
+      return false;
+    }
+    setIsCpfValido(true);
+    return true;
+  }
+
+  // Máscara de CPF
+  function formatarCPF(valor: string) {
+    return valor
+      .replace(/\D/g, "")
+      .replace(/(\d{3})(\d)/, "$1.$2")
+      .replace(/(\d{3})(\d)/, "$1.$2")
+      .replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+  }
+
+  // Máscara de Telefone
+  function formatarTelefone(valor: string) {
+    return valor
+      .replace(/\D/g, "") // Remove tudo que não for número
+      .replace(/^(\d{2})(\d)/, "($1) $2") // Formato (XX) XXX
+      .replace(/(\d{5})(\d{1,4})$/, "$1-$2"); // Formato (XX) XXXXX-XXXX
+  }
+
+  // Função para verificar CPF
+  async function verificarCPF(cpf: string) {
+    if (cpf.replace(/\D/g, "").length === 11) {
+      try {
+        const cpfExists = await VerificarCPF(cpf.replace(/\D/g, ""));
+        setCpfExistente(cpfExists);
+      } catch (error) {
+        console.error("Erro ao verificar CPF:", error);
+        setCpfExistente(null);
+      }
+    }
+  }
+
+  // Função para verificar Email
+  async function verificarEmail(email: string) {
+    if (email && email.includes("@") && email.includes(".")) {
+      try {
+        const emailExists = await VerificarEmail(email);
+        setEmailExistente(emailExists);
+      } catch (error) {
+        console.error("Erro ao verificar Email:", error);
+        setEmailExistente(null);
+      }
+    }
+  }
+
+  // Função para verificar Telefone
+  async function verificarTelefone(telefone: string) {
+    const telefoneNumerico = telefone.replace(/\D/g, "");
+    if (telefoneNumerico.length >= 10) {
+      // Verifica se tem pelo menos 10 dígitos (com DDD)
+      try {
+        const telefoneExists = await VerificarTelefone(telefoneNumerico);
+        setTelefoneExistente(telefoneExists);
+      } catch (error) {
+        console.error("Erro ao verificar Telefone:", error);
+        setTelefoneExistente(null);
+      }
+    }
+  }
+
   // Função de cadastro
   async function cadastrarUsuario(formData: FormData) {
-    const nomeCompleto = formData.get("nomeCompleto");
-    const cpf = formData.get("cpf");
-    const telefone = formData.get("telefone");
-    const email = formData.get("email");
-    const senha = formData.get("senha");
+    const nomeCompleto = String(formData.get("nomeCompleto") || "");
+    const cpf = String(formData.get("cpf") || "").replace(/\D/g, "");
+    const telefone = String(formData.get("telefone") || "").replace(/\D/g, "");
+    const email = String(formData.get("email") || "");
+    const senha = String(formData.get("senha") || "");
 
-    if (senha !== formData.get("confirmarSenha")) {
+    if (
+      !validarCPF(cpf) ||
+      senha !== formData.get("confirmarSenha") ||
+      cpfExistente ||
+      emailExistente ||
+      telefoneExistente
+    ) {
       return;
     }
 
@@ -120,19 +230,107 @@ export default function CadastroPage() {
                   <label htmlFor="cpf" className="text-sm font-medium">
                     CPF
                   </label>
-                  <Input id="cpf" name="cpf" type="text" required />
+                  <Input
+                    id="cpf"
+                    name="cpf"
+                    type="text"
+                    maxLength={14}
+                    value={cpf}
+                    onChange={(e) => {
+                      const cpfFormatted = formatarCPF(e.target.value);
+                      setCpf(cpfFormatted);
+
+                      // Only validate when we have a complete CPF
+                      if (e.target.value.replace(/\D/g, "").length === 11) {
+                        validarCPF(cpfFormatted);
+                        verificarCPF(cpfFormatted);
+                      } else {
+                        setIsCpfValido(true);
+                        setCpfExistente(null);
+                      }
+                    }}
+                    required
+                  />
+                  {!isCpfValido && (
+                    <p className="text-red-500 text-sm">CPF inválido</p>
+                  )}
+                  {cpfExistente && (
+                    <p className="text-red-500 text-sm">CPF já cadastrado</p>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <label htmlFor="telefone" className="text-sm font-medium">
                     Telefone
                   </label>
-                  <Input id="telefone" name="telefone" type="tel" required />
+                  <Input
+                    id="telefone"
+                    name="telefone"
+                    type="text"
+                    maxLength={15} // Permite (XX) XXXXX-XXXX
+                    value={telefone}
+                    onChange={(e) => {
+                      const telefoneFormatted = formatarTelefone(
+                        e.target.value
+                      );
+                      setTelefone(telefoneFormatted);
+
+                      // Limpa o timeout anterior se existir
+                      if (telefoneTimeout) clearTimeout(telefoneTimeout);
+
+                      // Configura um novo timeout para verificar após o usuário parar de digitar
+                      const newTimeout = setTimeout(() => {
+                        if (telefoneFormatted.replace(/\D/g, "").length >= 10) {
+                          verificarTelefone(telefoneFormatted);
+                        } else {
+                          setTelefoneExistente(null);
+                        }
+                      }, 500);
+
+                      setTelefoneTimeout(newTimeout);
+                    }}
+                    required
+                  />
+                  {telefoneExistente && (
+                    <p className="text-red-500 text-sm">
+                      Telefone já cadastrado
+                    </p>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <label htmlFor="email" className="text-sm font-medium">
                     Email
                   </label>
-                  <Input id="email" name="email" type="email" required />
+                  <Input
+                    id="email"
+                    name="email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => {
+                      setEmail(e.target.value);
+
+                      // Limpa o timeout anterior se existir
+                      if (emailTimeout) clearTimeout(emailTimeout);
+
+                      // Configura um novo timeout para verificar após o usuário parar de digitar
+                      const newTimeout = setTimeout(() => {
+                        if (
+                          e.target.value &&
+                          e.target.value.includes("@") &&
+                          e.target.value.includes(".")
+                        ) {
+                          verificarEmail(e.target.value);
+                        } else {
+                          setEmailExistente(null);
+                        }
+                      }, 500);
+
+                      setEmailTimeout(newTimeout);
+                    }}
+                    required
+                  />
+                  {emailExistente && (
+                    <p className="text-red-500 text-sm">Email já cadastrado</p>
+                  )}
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
@@ -191,7 +389,15 @@ export default function CadastroPage() {
                 ) : (
                   <Button
                     className="w-full bg-[#3B5578] hover:bg-[#2f4460]"
-                    disabled={senha !== confirmarSenha || senha.trim() === ""}
+                    disabled={
+                      senha !== confirmarSenha ||
+                      senha.trim() === "" ||
+                      senha.length < 8 ||
+                      !isCpfValido ||
+                      cpfExistente === true ||
+                      emailExistente === true ||
+                      telefoneExistente === true
+                    }
                   >
                     Cadastrar
                   </Button>

@@ -11,19 +11,19 @@ const Navbar = () => {
 
   const toggleMenu = () => setMenuOpen(!menuOpen);
 
-  const sobreNos = () => {
-    const section = document.getElementById("sobre-nos");
-    if (section) {
-      section.scrollIntoView({ behavior: "smooth" });
-    }
-  };
+  // const sobreNos = () => {
+  //   const section = document.getElementById("sobre-nos");
+  //   if (section) {
+  //     section.scrollIntoView({ behavior: "smooth" });
+  //   }
+  // };
 
-  const contato = () => {
-    const section = document.getElementById("contato");
-    if (section) {
-      section.scrollIntoView({ behavior: "smooth" });
-    }
-  };
+  // const contato = () => {
+  //   const section = document.getElementById("contato");
+  //   if (section) {
+  //     section.scrollIntoView({ behavior: "smooth" });
+  //   }
+  // };
 
   return (
     <nav className="bg-gradient-to-r from-[#3C6499] to-[#375377] text-white px-6 py-4">
@@ -55,13 +55,13 @@ const Navbar = () => {
           <Link href="/" className="hover:opacity-80 px-4 py-2">
             Home
           </Link>
-          <Link href="/agendamento" className="hover:opacity-80 px-4 py-2">
+          <Link href="/agendar-coleta" className="hover:opacity-80 px-4 py-2">
             Agendar Coleta
           </Link>
           <Link href="/dicas" className="hover:opacity-80 px-4 py-2">
             Dicas
           </Link>
-          <Link
+          {/* <Link
             href="#sobre-nos"
             onClick={sobreNos}
             className="hover:opacity-80 px-4 py-2"
@@ -74,7 +74,7 @@ const Navbar = () => {
             className="hover:opacity-80 px-4 py-2"
           >
             Contato
-          </Link>
+          </Link> */}
           <UserButton />
         </div>
       </div>

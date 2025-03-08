@@ -8,11 +8,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { signIn } from "@/lib/auth/client";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 export default function LoginPage() {
   const router = useRouter();
+  const [error, setError] = useState("");
 
   async function validarUsuario(formData: FormData) {
+    setError(""); // Limpa erros anteriores
     const email = formData.get("email");
     const senha = formData.get("senha");
 
@@ -28,6 +31,9 @@ export default function LoginPage() {
       {
         onSuccess: async () => {
           router.push("/");
+        },
+        onError: () => {
+          setError("Email ou senha estão incorretos");
         },
       }
     );
@@ -86,6 +92,7 @@ export default function LoginPage() {
                   </label>
                   <Input id="password" type="password" name="senha" required />
                 </div>
+                {error && <p className="text-red-500 text-sm">{error}</p>}
                 <Link
                   href="/forgot-password"
                   className="text-sm text-blue-600 hover:underline block"

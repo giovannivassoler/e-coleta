@@ -2,9 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Home, Calendar, List, Lock, User, Menu } from "lucide-react";
+import { Home, Calendar, List, User, Menu } from "lucide-react";
 import { MinhasColetas } from "./componentes/MinhasColetas";
-import { AlterarSenha } from "./componentes/AlterarSenha";
 import { InfoPessoal } from "./componentes/InfoPessoal";
 
 const sidebarItems = [
@@ -16,7 +15,6 @@ const sidebarItems = [
     href: "/agendar-coleta",
   },
   { icon: List, label: "Minhas Coletas", id: "minhas-coletas" },
-  { icon: Lock, label: "Alterar Senha", id: "alterar-senha" },
   { icon: User, label: "Informações Pessoais", id: "informacoes-pessoais" },
 ];
 
@@ -28,8 +26,6 @@ export default function MinhaContaPage() {
     switch (activeSection) {
       case "minhas-coletas":
         return <MinhasColetas />;
-      case "alterar-senha":
-        return <AlterarSenha />;
       case "informacoes-pessoais":
         return <InfoPessoal />;
       default:
@@ -118,12 +114,7 @@ export default function MinhaContaPage() {
       )}
 
       {/* Main Content */}
-      <main className="flex-1 p-4">
-        <h1 className="text-2xl font-bold mb-4">
-          {sidebarItems.find((item) => item.id === activeSection)?.label}
-        </h1>
-        {renderContent()}
-      </main>
+      <main className="flex-1 p-4">{renderContent()}</main>
     </div>
   );
 }

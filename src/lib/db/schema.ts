@@ -31,6 +31,7 @@ export const empresaTable = pgTable("tb_empresa", {
   email_emp: varchar({ length: 45 }).notNull().unique(),
   senha_emp: varchar({ length: 45 }).notNull(),
   cnpj: char({ length: 14 }).notNull().unique(),
+  tel_emp: varchar({ length: 18 }),
 });
 
 // Tabela tb_coleta

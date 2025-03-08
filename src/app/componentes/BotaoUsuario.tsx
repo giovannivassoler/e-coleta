@@ -39,9 +39,26 @@ export function UserButton() {
   // Verifica se tem sessão ativa
   if (!data) {
     return (
-      <Link href="/login" className="hover:opacity-80">
-        Login
-      </Link>
+      <>
+        <Link
+          href="/parceiro"
+          className="hover:opacity-80 px-4 py-2 flex items-center gap-1"
+        >
+          Quero ser um parceiro
+        </Link>
+        <Link
+          href="/login"
+          className="hover:opacity-80 px-4 py-2 flex items-center gap-1"
+        >
+          Entre
+        </Link>
+        <Link
+          href="/cadastro"
+          className="hover:opacity-80 px-4 py-2 flex items-center gap-1"
+        >
+          Cadastrar
+        </Link>
+      </>
     );
   }
 
