@@ -2,28 +2,58 @@
 
 import type React from "react";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Navbar from "../componentes/navbar";
+import { organization, useSession } from "@/lib/auth/client";
+import { useRouter } from "next/navigation";
+import { updateEmpresa } from "./funcoes";
 
 export default function CadastroEmpresaPage() {
   const [razaoSocial, setRazaoSocial] = useState("");
   const [cnpj, setCnpj] = useState("");
-  const [email, setEmail] = useState("");
-  const [senha, setSenha] = useState("");
   const [confirmarSenha, setConfirmarSenha] = useState("");
   const [telefone, setTelefone] = useState("");
+  const sessao = useSession();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (sessao.data === null && sessao.isPending === false) {
+      router.push("/login");
+    }
+  }, [sessao, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     // Aqui você implementaria a lógica de cadastro
+    await organization.create(
+      {
+        name: razaoSocial,
+        slug: razaoSocial.replace(" ", "-").toLowerCase(),
+      },
+      {
+        onSuccess: async () => {
+          if (!sessao.data) return;
+          const resultado = await updateEmpresa(
+            telefone,
+            cnpj,
+            razaoSocial.replace(" ", "-").toLowerCase(),
+            sessao.data.user.email
+          );
+          if (resultado?.status === "Erro") {
+            alert("Erro ao atualizar dados da empresa");
+          }
+        },
+        onError:()=>{
+          alert("Erro ao criar a empresa")
+        }
+      }
+    );
     console.log("Cadastro submetido", {
       razaoSocial,
       cnpj,
-      email,
-      senha,
       telefone,
     });
     // Após o cadastro bem-sucedido, você redirecionaria o usuário
@@ -72,21 +102,7 @@ export default function CadastroEmpresaPage() {
                   required
                 />
               </div>
-              <div>
-                <label
-                  htmlFor="email"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Email
-                </label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                />
-              </div>
+
               <div>
                 <label
                   htmlFor="telefone"
@@ -109,21 +125,6 @@ export default function CadastroEmpresaPage() {
                   Endereço
                 </label>
                 <Input id="endereco" required />
-              </div>
-              <div>
-                <label
-                  htmlFor="senha"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Senha
-                </label>
-                <Input
-                  id="senha"
-                  type="password"
-                  value={senha}
-                  onChange={(e) => setSenha(e.target.value)}
-                  required
-                />
               </div>
               <div>
                 <label

@@ -24,16 +24,6 @@ export const enderecoTable = pgTable("tb_endereco", {
     .references(() => coletaTable.id),
 });
 
-// Tabela tb_empresa
-export const empresaTable = pgTable("tb_empresa", {
-  id: uuid().primaryKey().notNull().defaultRandom(),
-  nome: varchar({ length: 45 }).notNull(),
-  email_emp: varchar({ length: 45 }).notNull().unique(),
-  senha_emp: varchar({ length: 45 }).notNull(),
-  cnpj: char({ length: 14 }).notNull().unique(),
-  tel_emp: varchar({ length: 18 }),
-});
-
 // Tabela tb_coleta
 export const coletaTable = pgTable("tb_coleta", {
   id: uuid().primaryKey().notNull().defaultRandom(),
@@ -43,7 +33,7 @@ export const coletaTable = pgTable("tb_coleta", {
   id_usuario: text()
     .notNull()
     .references(() => user.id),
-  id_empresa: uuid().references(() => empresaTable.id),
+  id_empresa: text().references(() => organization.id),
 });
 
 // Tabela tb_itens
@@ -111,4 +101,43 @@ export const verification = pgTable("verification", {
   expiresAt: timestamp("expires_at").notNull(),
   createdAt: timestamp("created_at"),
   updatedAt: timestamp("updated_at"),
+});
+
+// Empresas
+
+export const organization = pgTable("organization", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  slug: text("slug").unique(),
+  logo: text("logo"),
+  createdAt: timestamp("created_at"),
+  metadata: text("metadata"),
+  cnpj: char({ length: 14 }).unique(),
+  tel_emp: varchar({ length: 18 }),
+});
+
+export const member = pgTable("member", {
+  id: text("id").primaryKey(),
+  organizationId: text("organization_id")
+    .notNull()
+    .references(() => organization.id, { onDelete: "cascade" }),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  role: text("role").notNull(),
+  createdAt: timestamp("created_at").notNull(),
+});
+
+export const invitation = pgTable("invitation", {
+  id: text("id").primaryKey(),
+  organizationId: text("organization_id")
+    .notNull()
+    .references(() => organization.id, { onDelete: "cascade" }),
+  email: text("email").notNull(),
+  role: text("role"),
+  status: text("status").notNull(),
+  expiresAt: timestamp("expires_at").notNull(),
+  inviterId: text("inviter_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
 });
