@@ -37,11 +37,4 @@ export async function updateEmpresa(
     return {status:"Erro"}
   }
 
-  await auth.api.addMember({
-    body: {
-      userId: sessao.user.id,
-      organizationId: resultado.id,
-      role: "admin",
-    },
-  });
 }
