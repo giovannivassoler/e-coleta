@@ -40,24 +40,12 @@ export function UserButton() {
   if (!data) {
     return (
       <>
-        <Link
-          href="/parceiro"
-          className="hover:opacity-80 px-4 py-2 flex items-center gap-1"
-        >
-          Quero ser um parceiro
-        </Link>
-        <Link
-          href="/login"
-          className="hover:opacity-80 px-4 py-2 flex items-center gap-1"
-        >
+        <a href="/login" className="bfhover:text-green-200 transition-colors">
           Entre
-        </Link>
-        <Link
-          href="/cadastro"
-          className="hover:opacity-80 px-4 py-2 flex items-center gap-1"
-        >
+        </a>
+        <a href="/cadastro" className="hover:text-green-200 transition-colors">
           Cadastrar
-        </Link>
+        </a>
       </>
     );
   }
@@ -69,7 +57,7 @@ export function UserButton() {
       {!menuOpen && (
         <button
           onClick={toggleDropdown}
-          className="hover:opacity-80 px-4 py-2 flex items-center gap-1"
+          className="hover:text-green-200 transition-colors"
         >
           Olá, {data.user.name} <FontAwesomeIcon icon={faAngleDown} />
         </button>
@@ -81,9 +69,9 @@ export function UserButton() {
           ref={dropdownRef}
           className="absolute right-0 mt-2 w-40 bg-white text-black shadow-lg rounded-lg overflow-hidden"
         >
-          <Link href="/Conta" className="block px-4 py-2 hover:bg-gray-200">
+          <a href="/Conta" className="block px-4 py-2 hover:bg-gray-200">
             Minha Conta
-          </Link>
+          </a>
           <button
             onClick={() => signOut()}
             className="w-full text-left px-4 py-2 hover:bg-gray-200"
@@ -96,9 +84,9 @@ export function UserButton() {
       {/* Mobile Menu */}
       {menuOpen && (
         <div ref={menuRef} className="md:hidden flex flex-col space-y-2 mt-2">
-          <Link href="/minhaconta" className="hover:opacity-80 px-4 py-2">
+          <a href="/minhaconta" className="hover:opacity-80 px-4 py-2">
             Minha Conta
-          </Link>
+          </a>
           <button
             onClick={() => {
               signOut();

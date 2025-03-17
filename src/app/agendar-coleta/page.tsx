@@ -2,40 +2,34 @@
 
 import type React from "react";
 import { useState, useEffect, useRef } from "react";
+import { Button } from "@/components/ui/button";
 import {
-  Calendar,
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  CalendarIcon,
   Clock,
   Loader2,
+  MapPin,
+  Recycle,
+  Smartphone,
+  Tv,
+  Battery,
+  Monitor,
+  Laptop,
+  Cpu,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
+import { UserButton } from "../componentes/BotaoUsuario";
 import Navbar from "../componentes/navbar";
-import { FooterColeta } from "../componentes/footer";
-
-interface ItensDescarte {
-  computador: boolean;
-  monitores: boolean;
-  pilhasBaterias: boolean;
-  outros: boolean;
-  celulares: boolean;
-  televisores: boolean;
-  eletrodomesticos: boolean;
-}
-
-interface FormData {
-  data: string;
-  horario: string;
-  cep: string;
-  numero: string;
-  complemento: string;
-  endereco: string;
-  estado: string;
-  cidade: string;
-  bairro: string;
-  outroEndereco: boolean;
-  itensDescarte: ItensDescarte;
-  descricao: string;
-}
 
 interface ViaCepResponse {
   cep: string;
@@ -47,8 +41,22 @@ interface ViaCepResponse {
   erro?: boolean;
 }
 
+interface ItensDescarte {
+  computador: boolean;
+  monitores: boolean;
+  pilhasBaterias: boolean;
+  outros: boolean;
+  celulares: boolean;
+  televisores: boolean;
+  eletrodomesticos: boolean;
+}
+
 export default function AgendarColeta() {
-  const [formData, setFormData] = useState<FormData>({
+  const [activeTab, setActiveTab] = useState("schedule");
+  const [otherItems, setOtherItems] = useState("");
+
+  // Estados para os dados do formulário
+  const [formData, setFormData] = useState({
     data: "",
     horario: "",
     cep: "",
@@ -69,6 +77,7 @@ export default function AgendarColeta() {
       eletrodomesticos: false,
     },
     descricao: "",
+    collectType: "residential",
   });
 
   const [isLoadingCep, setIsLoadingCep] = useState(false);
@@ -92,32 +101,26 @@ export default function AgendarColeta() {
   const maxDate = new Date(today);
   maxDate.setMonth(today.getMonth() + 2); // 2 meses a partir de hoje
 
-  const handleChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >
-  ) => {
-    const { name, value, type } = e.target;
-    const checked = (e.target as HTMLInputElement).checked;
+  const toggleWasteItem = (id: number) => {
+    const wasteItems = [
+      { id: 1, name: "computador" },
+      { id: 2, name: "monitores" },
+      { id: 3, name: "pilhasBaterias" },
+      { id: 4, name: "celulares" },
+      { id: 5, name: "televisores" },
+      { id: 6, name: "eletrodomesticos" },
+      { id: 7, name: "outros" },
+    ];
 
-    if (type === "checkbox" && name.startsWith("itens.")) {
-      const itemName = name.split(".")[1] as keyof ItensDescarte;
+    const item = wasteItems.find((item) => item.id === id);
+    if (item) {
+      const itemName = item.name as keyof ItensDescarte;
       setFormData((prev) => ({
         ...prev,
         itensDescarte: {
           ...prev.itensDescarte,
-          [itemName]: checked,
+          [itemName]: !prev.itensDescarte[itemName],
         },
-      }));
-    } else if (type === "checkbox") {
-      setFormData((prev) => ({
-        ...prev,
-        [name]: checked,
-      }));
-    } else {
-      setFormData((prev) => ({
-        ...prev,
-        [name]: value,
       }));
     }
   };
@@ -349,11 +352,11 @@ export default function AgendarColeta() {
           onClick={() => handleSelectDate(day)}
           disabled={isDisabled}
           className={`h-8 w-8 rounded-full flex items-center justify-center text-sm
-                     ${isToday ? "bg-blue-100 text-blue-700" : ""}
+                     ${isToday ? "bg-green-100 text-green-700" : ""}
                      ${
                        isDisabled
                          ? "text-gray-300 cursor-not-allowed"
-                         : "hover:bg-gray-100 cursor-pointer"
+                         : "hover:bg-green-50 cursor-pointer"
                      }`}
         >
           {day}
@@ -370,7 +373,7 @@ export default function AgendarColeta() {
     return (
       <div
         ref={calendarRef}
-        className="absolute z-10 mt-1 bg-white border border-gray-200 rounded-md shadow-lg p-3 w-64"
+        className="absolute z-10 mt-1 bg-white border border-green-200 rounded-md shadow-lg p-3 w-64"
       >
         <div className="flex justify-between items-center mb-2">
           <button
@@ -380,12 +383,12 @@ export default function AgendarColeta() {
             className={`p-1 rounded-full ${
               isPrevMonthDisabled
                 ? "text-gray-300 cursor-not-allowed"
-                : "hover:bg-gray-100"
+                : "hover:bg-green-50 text-green-700"
             }`}
           >
             <ChevronLeft className="h-4 w-4" />
           </button>
-          <div className="text-sm font-medium">
+          <div className="text-sm font-medium text-green-800">
             {monthNames[month]} {year}
           </div>
           <button
@@ -395,7 +398,7 @@ export default function AgendarColeta() {
             className={`p-1 rounded-full ${
               isNextMonthDisabled
                 ? "text-gray-300 cursor-not-allowed"
-                : "hover:bg-gray-100"
+                : "hover:bg-green-50 text-green-700"
             }`}
           >
             <ChevronRight className="h-4 w-4" />
@@ -419,6 +422,25 @@ export default function AgendarColeta() {
     );
   };
 
+  // Gerar horários de 30 em 30 minutos das 8h às 17h
+  const generateTimeSlots = () => {
+    const slots = [];
+    for (let hour = 8; hour <= 17; hour++) {
+      const hourStr = hour < 10 ? `0${hour}` : `${hour}`;
+
+      // Adicionar slot para hora cheia (XX:00)
+      slots.push(`${hourStr}:00`);
+
+      // Adicionar slot para meia hora (XX:30), exceto para 17:30 que está fora do horário
+      if (hour < 17) {
+        slots.push(`${hourStr}:30`);
+      }
+    }
+    return slots;
+  };
+
+  const timeSlots = generateTimeSlots();
+
   // Funções para o seletor de hora
   const handleSelectTime = (hour: string) => {
     setFormData((prev) => ({
@@ -433,17 +455,16 @@ export default function AgendarColeta() {
   const renderTimePicker = () => {
     const hours = [];
 
-    // Horários disponíveis (8h às 18h, de hora em hora)
-    for (let hour = 8; hour <= 18; hour++) {
-      const formattedHour = hour < 10 ? `0${hour}:00` : `${hour}:00`;
+    // Horários disponíveis (8h às 17h, de 30 em 30 minutos)
+    for (const timeSlot of timeSlots) {
       hours.push(
         <button
-          key={`hour-${hour}`}
+          key={`time-${timeSlot}`}
           type="button"
-          onClick={() => handleSelectTime(formattedHour)}
-          className="w-full text-left px-3 py-2 hover:bg-gray-100 text-sm"
+          onClick={() => handleSelectTime(timeSlot)}
+          className="w-full text-left px-3 py-2 hover:bg-green-50 text-sm"
         >
-          {formattedHour}
+          {timeSlot}
         </button>
       );
     }
@@ -451,381 +472,644 @@ export default function AgendarColeta() {
     return (
       <div
         ref={timePickerRef}
-        className="absolute z-10 mt-1 bg-white border border-gray-200 rounded-md shadow-lg p-1 w-40"
+        className="absolute z-10 mt-1 bg-white border border-green-200 rounded-md shadow-lg p-1 w-40"
       >
         <div className="max-h-48 overflow-y-auto">{hours}</div>
       </div>
     );
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    console.log("Dados do agendamento:", formData);
-    // Aqui você pode implementar a lógica para enviar os dados para o backend
+  const handleAddressChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
+  const handleCollectTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setFormData((prev) => ({
+      ...prev,
+      collectType: e.target.value,
+    }));
+  };
+
+  const wasteItemsList = [
+    {
+      id: 1,
+      name: "Computador",
+      type: "computador",
+      selected: formData.itensDescarte.computador,
+      icon: <Cpu className="h-4 w-4" />,
+    },
+    {
+      id: 2,
+      name: "Monitor",
+      type: "monitores",
+      selected: formData.itensDescarte.monitores,
+      icon: <Monitor className="h-4 w-4" />,
+    },
+    {
+      id: 3,
+      name: "Pilhas e baterias",
+      type: "pilhasBaterias",
+      selected: formData.itensDescarte.pilhasBaterias,
+      icon: <Battery className="h-4 w-4" />,
+    },
+    {
+      id: 4,
+      name: "Celulares",
+      type: "celulares",
+      selected: formData.itensDescarte.celulares,
+      icon: <Smartphone className="h-4 w-4" />,
+    },
+    {
+      id: 5,
+      name: "Televisores",
+      type: "televisores",
+      selected: formData.itensDescarte.televisores,
+      icon: <Tv className="h-4 w-4" />,
+    },
+    {
+      id: 6,
+      name: "Eletrodomésticos",
+      type: "eletrodomesticos",
+      selected: formData.itensDescarte.eletrodomesticos,
+      icon: <Laptop className="h-4 w-4" />,
+    },
+  ];
+
   return (
-    <>
-      <Navbar></Navbar>
-      <div className="container mx-auto p-4 max-w-5xl">
-        <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
-          <div className="p-4">
-            <h1 className="text-2xl font-bold mb-4">Agendar Coleta</h1>
+    <div className="min-h-screen bg-gradient-to-b from-green-50 to-white">
+      <Navbar />
+      <main className="container mx-auto py-8 px-4">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl font-bold text-green-800 mb-4">
+            Agende a Coleta do seu Lixo Eletrônico
+          </h2>
+          <p className="text-gray-600 max-w-2xl mx-auto">
+            Descarte seus equipamentos eletrônicos de forma responsável e
+            sustentável. Nosso serviço coleta, recicla e dá o destino correto
+            para seu lixo eletrônico.
+          </p>
+        </div>
 
-            <form onSubmit={handleSubmit}>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                <div>
-                  <label
-                    htmlFor="data"
-                    className="block text-sm font-medium mb-1"
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <Card className="lg:col-span-2 border-green-100 shadow-md">
+            <CardHeader className="border-b border-green-100 bg-green-50">
+              <CardTitle className="text-2xl font-bold text-green-800">
+                Agendar Coleta
+              </CardTitle>
+              <CardDescription>
+                Preencha os dados para agendar a retirada do seu lixo eletrônico
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="pt-6">
+              <Tabs
+                value={activeTab}
+                onValueChange={setActiveTab}
+                className="w-full"
+              >
+                <TabsList className="grid w-full grid-cols-3 mb-8 bg-green-100">
+                  <TabsTrigger
+                    value="schedule"
+                    className="data-[state=active]:bg-green-600 data-[state=active]:text-white"
                   >
-                    Data
-                  </label>
-                  <div className="relative">
-                    <input
-                      id="data"
-                      name="data"
-                      type="text"
-                      placeholder="dd/mm/aaaa"
-                      value={formData.data}
-                      onChange={handleChange}
-                      onClick={() => setShowCalendar(true)}
-                      readOnly
-                      ref={dateInputRef}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
-                    />
-                    <Calendar className="absolute right-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
-                    {showCalendar && renderCalendar()}
-                  </div>
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="horario"
-                    className="block text-sm font-medium mb-1"
+                    Agendamento
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="items"
+                    className="data-[state=active]:bg-green-600 data-[state=active]:text-white"
                   >
-                    Horário
-                  </label>
-                  <div className="relative">
-                    <input
-                      id="horario"
-                      name="horario"
-                      type="text"
-                      placeholder="--:--"
-                      value={formData.horario}
-                      onChange={handleChange}
-                      onClick={() => setShowTimePicker(true)}
-                      readOnly
-                      ref={timeInputRef}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
-                    />
-                    <Clock className="absolute right-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
-                    {showTimePicker && renderTimePicker()}
-                  </div>
-                </div>
-              </div>
-
-              {/* Campos de endereço em layout mais horizontal */}
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-                <div>
-                  <label
-                    htmlFor="cep"
-                    className="block text-sm font-medium mb-1"
-                  >
-                    CEP
-                  </label>
-                  <div className="relative">
-                    <input
-                      id="cep"
-                      name="cep"
-                      type="text"
-                      placeholder="00000-000"
-                      value={formData.cep}
-                      onChange={handleCepChange}
-                      className={`w-full px-3 py-2 border ${
-                        cepError ? "border-red-500" : "border-gray-300"
-                      } rounded-md focus:outline-none focus:ring-2 ${
-                        cepError ? "focus:ring-red-500" : "focus:ring-blue-500"
-                      }`}
-                    />
-                    {isLoadingCep && (
-                      <Loader2 className="absolute right-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 animate-spin" />
-                    )}
-                  </div>
-                  {cepError && (
-                    <p className="text-red-500 text-xs mt-1">{cepError}</p>
-                  )}
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="estado"
-                    className="block text-sm font-medium mb-1"
-                  >
-                    Estado
-                  </label>
-                  <input
-                    id="estado"
-                    name="estado"
-                    type="text"
-                    placeholder=""
-                    value={formData.estado}
-                    onChange={handleChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 focus:outline-none"
-                    disabled
-                  />
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="cidade"
-                    className="block text-sm font-medium mb-1"
-                  >
-                    Cidade
-                  </label>
-                  <input
-                    id="cidade"
-                    name="cidade"
-                    type="text"
-                    placeholder=""
-                    value={formData.cidade}
-                    onChange={handleChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 focus:outline-none"
-                    disabled
-                  />
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="bairro"
-                    className="block text-sm font-medium mb-1"
-                  >
-                    Bairro
-                  </label>
-                  <input
-                    id="bairro"
-                    name="bairro"
-                    type="text"
-                    placeholder=""
-                    value={formData.bairro}
-                    onChange={handleChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 focus:outline-none"
-                    disabled
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                <div className="md:col-span-2">
-                  <label
-                    htmlFor="endereco"
-                    className="block text-sm font-medium mb-1"
+                    Itens
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="address"
+                    className="data-[state=active]:bg-green-600 data-[state=active]:text-white"
                   >
                     Endereço
-                  </label>
-                  <input
-                    id="endereco"
-                    name="endereco"
-                    type="text"
-                    placeholder=""
-                    value={formData.endereco}
-                    onChange={handleChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 focus:outline-none"
-                    disabled
-                  />
+                  </TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="schedule" className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <label className="block text-sm font-medium text-gray-700">
+                        Data da Coleta
+                      </label>
+                      <div className="relative">
+                        <Input
+                          id="data"
+                          name="data"
+                          type="text"
+                          placeholder="dd/mm/aaaa"
+                          value={formData.data}
+                          onChange={handleAddressChange}
+                          onClick={() => setShowCalendar(true)}
+                          readOnly
+                          ref={dateInputRef}
+                          className="w-full border-green-200 focus-visible:ring-green-500 cursor-pointer"
+                        />
+                        <CalendarIcon className="absolute right-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-green-500 pointer-events-none" />
+                        {showCalendar && renderCalendar()}
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="block text-sm font-medium text-gray-700">
+                        Horário Preferencial
+                      </label>
+                      <div className="relative">
+                        <Input
+                          id="horario"
+                          name="horario"
+                          type="text"
+                          placeholder="--:--"
+                          value={formData.horario}
+                          onChange={handleAddressChange}
+                          onClick={() => setShowTimePicker(true)}
+                          readOnly
+                          ref={timeInputRef}
+                          className="w-full border-green-200 focus-visible:ring-green-500 cursor-pointer"
+                        />
+                        <Clock className="absolute right-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-green-500 pointer-events-none" />
+                        {showTimePicker && renderTimePicker()}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex justify-end mt-6">
+                    <Button
+                      onClick={() => setActiveTab("items")}
+                      className="bg-green-600 hover:bg-green-700 text-white"
+                    >
+                      Próximo
+                    </Button>
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="items" className="space-y-6">
+                  <div className="space-y-4">
+                    <label className="block text-sm font-medium text-gray-700">
+                      Selecione os itens para descarte
+                    </label>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                      {wasteItemsList.map((item) => (
+                        <div
+                          key={item.id}
+                          className={`flex items-center gap-2 p-3 rounded-md border cursor-pointer transition-colors ${
+                            item.selected
+                              ? "bg-green-100 border-green-500"
+                              : "border-gray-200 hover:border-green-300"
+                          }`}
+                          onClick={() => toggleWasteItem(item.id)}
+                        >
+                          <div
+                            className={`p-2 rounded-full ${
+                              item.selected
+                                ? "bg-green-500 text-white"
+                                : "bg-gray-100 text-gray-500"
+                            }`}
+                          >
+                            {item.icon}
+                          </div>
+                          <span className="font-medium">{item.name}</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="mt-6">
+                      <label
+                        htmlFor="descricao"
+                        className="block text-sm font-medium text-gray-700"
+                      >
+                        Descreva os itens
+                      </label>
+                      <textarea
+                        id="descricao"
+                        name="descricao"
+                        value={formData.descricao}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            descricao: e.target.value,
+                          }))
+                        }
+                        placeholder="Descreva quais itens e a quantidade para coleta"
+                        className="mt-2 w-full px-3 py-2 border border-green-200 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 min-h-[100px]"
+                      />
+                    </div>
+
+                    <div className="bg-green-50 p-4 rounded-md border border-green-100 mt-4">
+                      <h4 className="font-medium text-green-800 flex items-center gap-2">
+                        <Recycle className="h-5 w-5" />
+                        Informações importantes
+                      </h4>
+                      <ul className="mt-2 text-sm text-gray-600 space-y-1">
+                        <li>
+                          • Remova dados pessoais de dispositivos de
+                          armazenamento
+                        </li>
+                        <li>
+                          • Separe baterias e pilhas em embalagens separadas
+                        </li>
+                        <li>• Embale itens frágeis adequadamente</li>
+                        <li>
+                          • Equipamentos muito grandes podem exigir agendamento
+                          especial
+                        </li>
+                      </ul>
+                    </div>
+                    <div className="flex justify-between mt-6">
+                      <Button
+                        onClick={() => setActiveTab("schedule")}
+                        variant="outline"
+                        className="border-green-200 text-green-700 hover:bg-green-50"
+                      >
+                        Voltar
+                      </Button>
+                      <Button
+                        onClick={() => setActiveTab("address")}
+                        className="bg-green-600 hover:bg-green-700 text-white"
+                      >
+                        Próximo
+                      </Button>
+                    </div>
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="address" className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <label
+                        htmlFor="cep"
+                        className="block text-sm font-medium text-gray-700"
+                      >
+                        CEP
+                      </label>
+                      <div className="relative">
+                        <Input
+                          id="cep"
+                          name="cep"
+                          placeholder="00000-000"
+                          value={formData.cep}
+                          onChange={handleCepChange}
+                          className={`border-green-200 focus-visible:ring-green-500 ${
+                            cepError ? "border-red-500" : ""
+                          }`}
+                        />
+                        {isLoadingCep && (
+                          <Loader2 className="absolute right-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-green-500 animate-spin" />
+                        )}
+                      </div>
+                      {cepError && (
+                        <p className="text-red-500 text-xs mt-1">{cepError}</p>
+                      )}
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="block text-sm font-medium text-gray-700">
+                        Tipo de Coleta
+                      </label>
+                      <select
+                        value={formData.collectType}
+                        onChange={handleCollectTypeChange}
+                        className="w-full px-3 py-2 border border-green-200 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                      >
+                        <option value="residential">Residencial</option>
+                        <option value="commercial">Comercial</option>
+                        <option value="industrial">Industrial</option>
+                      </select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label
+                        htmlFor="street"
+                        className="block text-sm font-medium text-gray-700"
+                      >
+                        Rua
+                      </label>
+                      <Input
+                        id="endereco"
+                        name="endereco"
+                        placeholder="Nome da rua"
+                        value={formData.endereco}
+                        onChange={handleAddressChange}
+                        className="border-green-200 focus-visible:ring-green-500 bg-green-50"
+                        readOnly
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label
+                        htmlFor="number"
+                        className="block text-sm font-medium text-gray-700"
+                      >
+                        Número
+                      </label>
+                      <Input
+                        id="numero"
+                        name="numero"
+                        placeholder="123"
+                        value={formData.numero}
+                        onChange={handleAddressChange}
+                        className="border-green-200 focus-visible:ring-green-500"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label
+                        htmlFor="complement"
+                        className="block text-sm font-medium text-gray-700"
+                      >
+                        Complemento
+                      </label>
+                      <Input
+                        id="complemento"
+                        name="complemento"
+                        placeholder="Apto, Bloco, etc."
+                        value={formData.complemento}
+                        onChange={handleAddressChange}
+                        className="border-green-200 focus-visible:ring-green-500"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label
+                        htmlFor="neighborhood"
+                        className="block text-sm font-medium text-gray-700"
+                      >
+                        Bairro
+                      </label>
+                      <Input
+                        id="bairro"
+                        name="bairro"
+                        placeholder="Seu bairro"
+                        value={formData.bairro}
+                        onChange={handleAddressChange}
+                        className="border-green-200 focus-visible:ring-green-500 bg-green-50"
+                        readOnly
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label
+                        htmlFor="city"
+                        className="block text-sm font-medium text-gray-700"
+                      >
+                        Cidade
+                      </label>
+                      <Input
+                        id="cidade"
+                        name="cidade"
+                        placeholder="Sua cidade"
+                        value={formData.cidade}
+                        onChange={handleAddressChange}
+                        className="border-green-200 focus-visible:ring-green-500 bg-green-50"
+                        readOnly
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label
+                        htmlFor="state"
+                        className="block text-sm font-medium text-gray-700"
+                      >
+                        Estado
+                      </label>
+                      <Input
+                        id="estado"
+                        name="estado"
+                        placeholder="Estado"
+                        value={formData.estado}
+                        onChange={handleAddressChange}
+                        className="border-green-200 focus-visible:ring-green-500 bg-green-50"
+                        readOnly
+                      />
+                    </div>
+                  </div>
+
+                  {/* <div className="bg-green-50 p-4 rounded-md border border-green-100 mt-4">
+                    <h4 className="font-medium text-green-800 flex items-center gap-2">
+                      <MapPin className="h-5 w-5" />
+                      Área de Cobertura
+                    </h4>
+                    <p className="mt-2 text-sm text-gray-600">
+                      Atualmente atendemos as regiões metropolitanas de São Paulo, Rio de Janeiro e Belo Horizonte. Para
+                      outras localidades, entre em contato para verificar disponibilidade.
+                    </p>
+                  </div> */}
+                  <div className="flex justify-end mt-6">
+                    <Button
+                      onClick={() => setActiveTab("items")}
+                      variant="outline"
+                      className="border-green-200 text-green-700 hover:bg-green-50 mr-2"
+                    >
+                      Voltar
+                    </Button>
+                  </div>
+                </TabsContent>
+              </Tabs>
+            </CardContent>
+            <CardFooter className="flex justify-end border-t border-green-100 pt-6">
+              {activeTab === "address" && (
+                <Button className="bg-green-600 hover:bg-green-700 text-white">
+                  Agendar Coleta
+                </Button>
+              )}
+            </CardFooter>
+          </Card>
+
+          <div className="space-y-6">
+            <Card className="border-green-100 shadow-md">
+              <CardHeader className="bg-green-50 border-b border-green-100">
+                <CardTitle className="text-xl font-bold text-green-800">
+                  Benefícios
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-4">
+                <ul className="space-y-3">
+                  <li className="flex items-start gap-2">
+                    <div className="p-1 mt-0.5 rounded-full bg-green-100 text-green-600">
+                      <Recycle className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <span className="font-medium text-green-800">
+                        Descarte Responsável
+                      </span>
+                      <p className="text-sm text-gray-600">
+                        Garantimos o descarte correto de seus equipamentos
+                        eletrônicos.
+                      </p>
+                    </div>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <div className="p-1 mt-0.5 rounded-full bg-green-100 text-green-600">
+                      <Recycle className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <span className="font-medium text-green-800">
+                        Redução de Poluição
+                      </span>
+                      <p className="text-sm text-gray-600">
+                        Evite que materiais tóxicos contaminem o meio ambiente.
+                      </p>
+                    </div>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <div className="p-1 mt-0.5 rounded-full bg-green-100 text-green-600">
+                      <MapPin className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <span className="font-medium text-green-800">
+                        Praticidade
+                      </span>
+                      <p className="text-sm text-gray-600">
+                        A coleta é feita em sua própria casa
+                      </p>
+                    </div>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <div className="p-1 mt-0.5 rounded-full bg-green-100 text-green-600">
+                      <Clock className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <span className="font-medium text-green-800">
+                        Economia de Tempo
+                      </span>
+                      <p className="text-sm text-gray-600">
+                        Não perca tempo procurando pontos de coleta.
+                      </p>
+                    </div>
+                  </li>
+                </ul>
+              </CardContent>
+            </Card>
+
+            <Card className="border-green-100 shadow-md">
+              <CardHeader className="bg-green-50 border-b border-green-100">
+                <CardTitle className="text-xl font-bold text-green-800">
+                  Processo de Reciclagem
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-4">
+                <div className="space-y-4">
+                  <div className="relative pl-8 pb-4 border-l-2 border-green-200">
+                    <div className="absolute left-[-9px] top-0 w-4 h-4 rounded-full bg-green-500"></div>
+                    <h4 className="font-medium text-green-800">1. Coleta</h4>
+                    <p className="text-sm text-gray-600">
+                      Agendamos a coleta dos seus equipamentos eletrônicos de
+                      forma prática e segura.
+                    </p>
+                  </div>
+                  <div className="relative pl-8 pb-4 border-l-2 border-green-200">
+                    <div className="absolute left-[-9px] top-0 w-4 h-4 rounded-full bg-green-500"></div>
+                    <h4 className="font-medium text-green-800">2. Triagem</h4>
+                    <p className="text-sm text-gray-600">
+                      Realizamos a separação cuidadosa dos materiais por tipo e
+                      avaliamos se ainda podem ser reutilizados.
+                    </p>
+                  </div>
+                  <div className="relative pl-8 pb-4 border-l-2 border-green-200">
+                    <div className="absolute left-[-9px] top-0 w-4 h-4 rounded-full bg-green-500"></div>
+                    <h4 className="font-medium text-green-800">
+                      3. Desmontagem
+                    </h4>
+                    <p className="text-sm text-gray-600">
+                      Equipamentos que não podem ser reaproveitados são
+                      desmontados para que seus componentes possam ser separados
+                      de maneira eficiente.
+                    </p>
+                  </div>
+                  <div className="relative pl-8">
+                    <div className="absolute left-[-9px] top-0 w-4 h-4 rounded-full bg-green-500"></div>
+                    <h4 className="font-medium text-green-800">
+                      4. Reciclagem
+                    </h4>
+                    <p className="text-sm text-gray-600">
+                      Após a separação dos componentes, eles são enviados para
+                      processos de reciclagem, garantindo a destinação correta e
+                      sustentável.
+                    </p>
+                  </div>
                 </div>
+              </CardContent>
+            </Card>
 
-                <div>
-                  <label
-                    htmlFor="numero"
-                    className="block text-sm font-medium mb-1"
-                  >
-                    Nº
-                  </label>
-                  <input
-                    id="numero"
-                    name="numero"
-                    type="text"
-                    placeholder=""
-                    value={formData.numero}
-                    onChange={handleChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
+            <div className="bg-green-600 text-white p-6 rounded-lg shadow-md">
+              <h3 className="text-xl font-bold mb-2">Precisa de ajuda?</h3>
+              <p className="mb-4 text-green-100">
+                Nossa equipe está pronta para esclarecer suas dúvidas sobre o
+                descarte de lixo eletrônico.
+              </p>
+              <div className="flex items-center gap-2 mb-2">
+                <Clock className="h-5 w-5" />
+                <span>(11) 9999-9999</span>
               </div>
-
-              <div className="mb-4">
-                <label
-                  htmlFor="complemento"
-                  className="block text-sm font-medium mb-1"
-                >
-                  Complemento
-                </label>
-                <input
-                  id="complemento"
-                  name="complemento"
-                  type="text"
-                  placeholder=""
-                  value={formData.complemento}
-                  onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-
-              <div className="mb-4">
-                <h2 className="text-lg font-semibold mb-2">
-                  Quais itens serão descartados?
-                </h2>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="checkbox"
-                      id="itens.computador"
-                      name="itens.computador"
-                      checked={formData.itensDescarte.computador}
-                      onChange={handleChange}
-                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                    />
-                    <label
-                      htmlFor="itens.computador"
-                      className="text-sm font-medium"
-                    >
-                      Computador
-                    </label>
-                  </div>
-
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="checkbox"
-                      id="itens.monitores"
-                      name="itens.monitores"
-                      checked={formData.itensDescarte.monitores}
-                      onChange={handleChange}
-                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                    />
-                    <label
-                      htmlFor="itens.monitores"
-                      className="text-sm font-medium"
-                    >
-                      Monitores
-                    </label>
-                  </div>
-
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="checkbox"
-                      id="itens.pilhasBaterias"
-                      name="itens.pilhasBaterias"
-                      checked={formData.itensDescarte.pilhasBaterias}
-                      onChange={handleChange}
-                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                    />
-                    <label
-                      htmlFor="itens.pilhasBaterias"
-                      className="text-sm font-medium"
-                    >
-                      Pilhas e Baterias
-                    </label>
-                  </div>
-
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="checkbox"
-                      id="itens.celulares"
-                      name="itens.celulares"
-                      checked={formData.itensDescarte.celulares}
-                      onChange={handleChange}
-                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                    />
-                    <label
-                      htmlFor="itens.celulares"
-                      className="text-sm font-medium"
-                    >
-                      Celulares
-                    </label>
-                  </div>
-
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="checkbox"
-                      id="itens.televisores"
-                      name="itens.televisores"
-                      checked={formData.itensDescarte.televisores}
-                      onChange={handleChange}
-                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                    />
-                    <label
-                      htmlFor="itens.televisores"
-                      className="text-sm font-medium"
-                    >
-                      Televisores
-                    </label>
-                  </div>
-
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="checkbox"
-                      id="itens.eletrodomesticos"
-                      name="itens.eletrodomesticos"
-                      checked={formData.itensDescarte.eletrodomesticos}
-                      onChange={handleChange}
-                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                    />
-                    <label
-                      htmlFor="itens.eletrodomesticos"
-                      className="text-sm font-medium"
-                    >
-                      Eletrodomésticos
-                    </label>
-                  </div>
-
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="checkbox"
-                      id="itens.outros"
-                      name="itens.outros"
-                      checked={formData.itensDescarte.outros}
-                      onChange={handleChange}
-                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                    />
-                    <label
-                      htmlFor="itens.outros"
-                      className="text-sm font-medium"
-                    >
-                      Outros
-                    </label>
-                  </div>
-                </div>
-              </div>
-
-              <div className="mb-4">
-                <label
-                  htmlFor="descricao"
-                  className="block text-sm font-medium mb-1"
-                >
-                  Descreva
-                </label>
-                <textarea
-                  id="descricao"
-                  name="descricao"
-                  placeholder="Descreva quais itens e a quantidade"
-                  value={formData.descricao}
-                  onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[80px]"
-                />
-              </div>
-
-              <button
-                type="submit"
-                className="w-full py-2 px-4 bg-[#3C6499] hover:bg-[#375377] text-white font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              <Button
+                variant="outline"
+                className="w-full border-white text-black "
               >
-                Agendar Coleta
-              </button>
-            </form>
+                Fale Conosco
+              </Button>
+            </div>
           </div>
         </div>
-      </div>
-      <FooterColeta></FooterColeta>
-    </>
+      </main>
+
+      <footer className="bg-green-800 text-white py-8 mt-12">
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div>
+              <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
+                <Recycle className="h-5 w-5" />
+                EcoTech Recicla
+              </h3>
+              <p className="text-green-200 text-sm">
+                Transformando o descarte de lixo eletrônico em uma experiência
+                simples e sustentável para um futuro mais verde.
+              </p>
+            </div>
+            <div>
+              <h3 className="text-lg font-bold mb-4">Links Rápidos</h3>
+              <ul className="space-y-2 text-green-200">
+                <li>
+                  <a href="#" className="hover:text-white transition-colors">
+                    Início
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-white transition-colors">
+                    Como Funciona
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-white transition-colors">
+                    Pontos de Coleta
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-white transition-colors">
+                    Contato
+                  </a>
+                </li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="text-lg font-bold mb-4">Contato</h3>
+              <address className="not-italic text-green-200 space-y-2 text-sm">
+                <p>Av. Paulista, 1000 - São Paulo, SP</p>
+                <p>contato@ecotechrecicla.com.br</p>
+                <p>(11) 9999-9999</p>
+              </address>
+            </div>
+          </div>
+          <div className="border-t border-green-700 mt-8 pt-6 text-center text-green-300 text-sm">
+            <p>© 2023 EcoTech Recicla. Todos os direitos reservados.</p>
+          </div>
+        </div>
+      </footer>
+    </div>
   );
 }

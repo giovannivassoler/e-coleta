@@ -446,7 +446,7 @@ export default function GerenciamentoColetas() {
             {/* Coletas Solicitadas */}
             {activeTab === "solicitadas" && (
               <>
-                <div className="p-4 border-b bg-[#3C6499] text-white">
+                <div className="p-4 border-b bg-gradient-to-r from-green-700 to-emerald-600 text-white">
                   <h2 className="text-lg font-semibold">Coletas solicitadas</h2>
                 </div>
                 <div className="max-h-[600px] overflow-y-auto">
@@ -537,7 +537,7 @@ export default function GerenciamentoColetas() {
             {/* Coletas em Andamento */}
             {activeTab === "andamento" && (
               <>
-                <div className="p-4 border-b bg-[#3C6499] text-white">
+                <div className="p-4 border-b bg-gradient-to-r from-green-700 to-emerald-600 text-white">
                   <h2 className="text-lg font-semibold">
                     Coletas em andamento
                   </h2>
@@ -617,7 +617,7 @@ export default function GerenciamentoColetas() {
             {/* Coletas Finalizadas */}
             {activeTab === "finalizadas" && (
               <>
-                <div className="p-4 border-b bg-[#3C6499] text-white">
+                <div className="p-4 border-b bg-gradient-to-r from-green-700 to-emerald-600 text-white">
                   <h2 className="text-lg font-semibold">Coletas finalizadas</h2>
                 </div>
                 <div className="max-h-[600px] overflow-y-auto">
