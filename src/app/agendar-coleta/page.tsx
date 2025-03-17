@@ -29,6 +29,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import Navbar from "../componentes/navbar";
+import { FooterColeta } from "../componentes/footer";
 
 interface ViaCepResponse {
   cep: string;
@@ -1057,58 +1058,7 @@ export default function AgendarColeta() {
         </div>
       </main>
 
-      <footer className="bg-green-800 text-white py-8 mt-12">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div>
-              <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
-                <Recycle className="h-5 w-5" />
-                EcoTech Recicla
-              </h3>
-              <p className="text-green-200 text-sm">
-                Transformando o descarte de lixo eletrônico em uma experiência
-                simples e sustentável para um futuro mais verde.
-              </p>
-            </div>
-            <div>
-              <h3 className="text-lg font-bold mb-4">Links Rápidos</h3>
-              <ul className="space-y-2 text-green-200">
-                <li>
-                  <a href="#" className="hover:text-white transition-colors">
-                    Início
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-white transition-colors">
-                    Como Funciona
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-white transition-colors">
-                    Pontos de Coleta
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-white transition-colors">
-                    Contato
-                  </a>
-                </li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="text-lg font-bold mb-4">Contato</h3>
-              <address className="not-italic text-green-200 space-y-2 text-sm">
-                <p>Av. Paulista, 1000 - São Paulo, SP</p>
-                <p>contato@ecotechrecicla.com.br</p>
-                <p>(11) 9999-9999</p>
-              </address>
-            </div>
-          </div>
-          <div className="border-t border-green-700 mt-8 pt-6 text-center text-green-300 text-sm">
-            <p>© 2023 EcoTech Recicla. Todos os direitos reservados.</p>
-          </div>
-        </div>
-      </footer>
+      <FooterColeta />
     </div>
   );
 }
