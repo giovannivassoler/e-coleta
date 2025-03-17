@@ -2,7 +2,6 @@
 
 import { signOut, useSession } from "@/lib/auth/client";
 import { useState, useEffect, useRef } from "react";
-import Link from "next/link";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faAngleDown } from "@fortawesome/free-solid-svg-icons";
 

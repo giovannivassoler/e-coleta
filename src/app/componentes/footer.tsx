@@ -1,5 +1,3 @@
-import Image from "next/image";
-import Link from "next/link";
 import { Recycle } from "lucide-react";
 
 export function FooterColeta() {

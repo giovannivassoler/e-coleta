@@ -28,7 +28,6 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
-import { UserButton } from "../componentes/BotaoUsuario";
 import Navbar from "../componentes/navbar";
 
 interface ViaCepResponse {
