@@ -39,7 +39,7 @@ export default function AgendarColeta() {
 
 
   const handleSubmit = () => {
-    criarPedido(formData).then(()=>router.push("/agendamentos/sucesso"))
+    criarPedido(formData).then(([resultado])=>router.push("/agendamentos/sucesso/"+resultado.id))
 
   }
 

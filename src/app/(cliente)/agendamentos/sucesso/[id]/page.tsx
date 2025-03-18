@@ -1,12 +1,32 @@
+import { db } from "@/lib/db/client";
 import { ArrowLeft, Calendar, CheckCircle, Clock, MapPin } from "lucide-react";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
-export default function SucessoPage(){
+export default async function SucessoPage({
+  params,
+}: {
+  params: Promise<{ id: string }>
+}){
+
+  const {id} = await params
+
+  const coleta = await db.query.coletaTable.findFirst(
+    {
+      where(fields, operators) {
+          return operators.eq(fields.id,id)
+      },
+    }
+  )
+
+  if (!coleta){
+    redirect("/agendamentos")
+  }
     return( <main className="flex-grow bg-green-50 py-8">
         <div className="container mx-auto px-4">
-          <h1 className="text-3xl text-green-700 font-bold text-center mb-4">Agendamento Realizado com Sucesso!</h1>
+          <h1 className="text-3xl text-green-700 font-bold text-center mb-4">Pedido de coleta Realizado com Sucesso!</h1>
           <p className="text-center text-gray-600 mb-8 max-w-3xl mx-auto">
-            Seu agendamento para coleta de lixo eletrônico foi confirmado. Abaixo estão os detalhes do seu agendamento.
+            Seu agendamento para coleta de lixo eletrônico foi solicitado. Abaixo estão os detalhes da sua coleta.
           </p>
 
           {/* Success Card */}
@@ -25,14 +45,13 @@ export default function SucessoPage(){
                     Detalhes do Agendamento
                   </h3>
                   <div className="space-y-2 text-gray-700">
+                   
+                   
                     <p>
-                      <span className="font-medium">Número:</span> #EC12345
+                      <span className="font-medium">Data preferida:</span> {new Date(coleta.data_coleta).toLocaleDateString()}
                     </p>
                     <p>
-                      <span className="font-medium">Data:</span> 25/03/2025
-                    </p>
-                    <p>
-                      <span className="font-medium">Horário:</span> Entre 09:00 e 12:00
+                      <span className="font-medium">Horário preferido:</span> {new Date(coleta.data_coleta).toLocaleTimeString()}
                     </p>
                   </div>
                 </div>
@@ -43,9 +62,8 @@ export default function SucessoPage(){
                     Endereço de Coleta
                   </h3>
                   <div className="space-y-2 text-gray-700">
-                    <p>Rua das Flores, 123</p>
-                    <p>Bairro Jardim - São Paulo, SP</p>
-                    <p>CEP: 01234-567</p>
+                    <p>{coleta.destinacao_final}</p>
+                 
                   </div>
                 </div>
               </div>

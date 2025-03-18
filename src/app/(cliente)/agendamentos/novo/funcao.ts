@@ -77,10 +77,12 @@ export async function criarPedido(formData: FormData) {
     }
   }
 
-  await db.insert(coletaTable).values({
+  return await db.insert(coletaTable).values({
     data_coleta: criarDataHora(formData.data, formData.horario).toISOString(),
     destinacao_final: juntarEndereco(formData),
     id_usuario: idUsuario,
     status_coleta: "Solicitado",
+  }).returning({
+    id:coletaTable.id
   });
 }
