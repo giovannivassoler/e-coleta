@@ -11,7 +11,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Recycle, Mail, Lock, Eye, EyeOff, User, Phone, CreditCard } from "lucide-react"
 import { signUp } from "@/lib/auth/client"
 import { updateUsuario, VerificarCPF, VerificarEmail, VerificarTelefone } from "./funcoes"
-import Navbar from "../componentes/navbar"
+
 
 export default function CadastroPage() {
   const router = useRouter()
@@ -233,7 +233,7 @@ export default function CadastroPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-green-50 to-white">
-      <Navbar></Navbar>
+      
 
       <main className="container mx-auto py-12 px-4 flex flex-col items-center justify-center">
         <div className="w-full max-w-md">

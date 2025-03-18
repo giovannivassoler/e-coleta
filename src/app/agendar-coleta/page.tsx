@@ -28,8 +28,7 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
-import Navbar from "../componentes/navbar";
-import { FooterColeta } from "../componentes/footer";
+
 
 interface ViaCepResponse {
   cep: string;
@@ -542,7 +541,7 @@ export default function AgendarColeta() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-green-50 to-white">
-      <Navbar />
+
       <main className="container mx-auto py-8 px-4">
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold text-green-800 mb-4">
@@ -1057,7 +1056,7 @@ export default function AgendarColeta() {
         </div>
       </main>
 
-      <FooterColeta />
+    
     </div>
   );
 }

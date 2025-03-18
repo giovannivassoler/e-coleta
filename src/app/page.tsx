@@ -3,13 +3,10 @@ import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Recycle, MapPin, Clock, Smartphone, Laptop, Battery, Monitor, ArrowRight, CheckCircle } from "lucide-react"
-import Navbar from "./componentes/navbar"
-import { FooterColeta } from "./componentes/footer"
 
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-green-50 to-white">
-      <Navbar />
 
       {/* Hero Section */}
       <section className="relative">
@@ -412,7 +409,7 @@ export default function HomePage() {
           </div>
         </div>
       </section>
-      <FooterColeta />
+    
     </div>
   )
 }

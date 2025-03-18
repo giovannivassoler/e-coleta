@@ -10,7 +10,7 @@ import { Separator } from "@/components/ui/separator"
 import { User, CreditCard, Phone, Mail, Lock, ChevronRight, X, Eye, EyeOff } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import Navbar from "../componentes/navbar"
+
 import { useSession } from "@/lib/auth/client"
 import { useRouter } from "next/navigation";
 
@@ -207,7 +207,7 @@ export default function MinhaContaPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-green-50 to-white">
-      <Navbar />
+    
 
       <main className="container mx-auto py-8 px-4">
         <div className="max-w-3xl mx-auto">

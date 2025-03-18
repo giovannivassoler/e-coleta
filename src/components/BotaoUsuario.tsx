@@ -63,7 +63,7 @@ export function UserButton() {
           ref={dropdownRef}
           className="absolute right-0 mt-2 w-40 bg-white text-black shadow-lg rounded-lg overflow-hidden"
         >
-          <Link href="/Conta" className="block px-4 py-2 hover:bg-gray-200">
+          <Link href="/conta" className="block px-4 py-2 hover:bg-gray-200">
             Minha Conta
           </Link>
           <button onClick={() => signOut()} className="w-full text-left px-4 py-2 hover:bg-gray-200">

@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import Navbar from "../componentes/navbar";
+
 import { organization, useSession } from "@/lib/auth/client";
 import { useRouter } from "next/navigation";
 import { updateEmpresa } from "./funcoes";
@@ -62,7 +62,7 @@ export default function CadastroEmpresaPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
-      <Navbar></Navbar>
+    
 
       {/* Main Content */}
       <main className="flex-1 flex items-center justify-center p-4">

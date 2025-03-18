@@ -5,8 +5,7 @@ import type React from "react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { X } from "lucide-react";
-import Navbar from "../componentes/navbar";
-import { FooterColeta } from "../componentes/footer";
+
 
 // Tipos para os diferentes estados de coleta
 type ColetaSolicitada = {
@@ -384,7 +383,7 @@ export default function GerenciamentoColetas() {
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-100">
-      <Navbar></Navbar>
+  
 
       <main className="flex-grow py-8">
         <div className="container mx-auto px-4">
@@ -738,7 +737,7 @@ export default function GerenciamentoColetas() {
         {selectedColeta && <DetalhesColeta dados={selectedColeta} />}
       </SimpleDialog>
 
-      <FooterColeta></FooterColeta>
+ 
     </div>
   );
 }

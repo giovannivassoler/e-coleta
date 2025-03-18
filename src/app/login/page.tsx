@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Recycle, Mail, Lock, Eye, EyeOff } from "lucide-react"
 import { signIn } from "@/lib/auth/client"
-import Navbar from "../componentes/navbar"
+
 
 export default function LoginPage() {
   const router = useRouter()
@@ -54,7 +54,7 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-green-50 to-white">
-      <Navbar></Navbar>
+      
 
       <main className="container mx-auto py-12 px-4 flex flex-col items-center justify-center">
         <div className="w-full max-w-md">

@@ -3,13 +3,12 @@ import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Users, TrendingUp, Award, Calendar, Shield, ArrowRight } from "lucide-react"
-import Navbar from "../componentes/navbar"
-import { FooterColeta } from "../componentes/footer"
+
 
 export default function PartnerPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-green-50 to-white">
-      <Navbar />
+     
 
       {/* Hero Section */}
       <section className="relative">
@@ -452,7 +451,7 @@ export default function PartnerPage() {
           </div>
         </div>
       </section>
-      <FooterColeta />
+ 
     </div>
   )
 }
