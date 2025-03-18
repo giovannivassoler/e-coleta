@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Menu, X } from "lucide-react";
 import { UserButton } from "./BotaoUsuario";
 import { Recycle } from "lucide-react";
+import Link from "next/link";
 
 const Navbar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -76,26 +77,20 @@ const Navbar = () => {
           {menuOpen ? <X size={28} /> : <Menu size={28} />}
         </button>
         <nav className="hidden md:flex gap-6">
-          <a href="/" className="hover:text-green-200 transition-colors">
-            Início
-          </a>
-          <a
-            href="/agendar-coleta"
-            className="hover:text-green-200 transition-colors"
-          >
-            Agendar Coleta
-          </a>
-          <a href="/dicas" className="hover:text-green-200 transition-colors">
-            Dicas
-          </a>
-          <a
-            href="/parceiro"
-            className="hover:text-green-200 transition-colors"
-          >
-            Quero ser um parceiro
-          </a>
-          <UserButton />
-        </nav>
+      <Link href="/" className="hover:text-green-200 transition-colors">
+        Início
+      </Link>
+      <Link href="/agendar-coleta" className="hover:text-green-200 transition-colors">
+        Agendar Coleta
+      </Link>
+      <Link href="/dicas" className="hover:text-green-200 transition-colors">
+        Dicas
+      </Link>
+      <Link href="/parceiro" className="hover:text-green-200 transition-colors">
+        Quero ser um parceiro
+      </Link>
+      <UserButton />
+    </nav>
       </div>
     </header>
   );

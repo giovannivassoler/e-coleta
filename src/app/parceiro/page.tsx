@@ -251,8 +251,8 @@ export default function PartnerPage() {
                   </div>
                 </div>
                 <p className="text-gray-600 italic">
-                  "Desde que nos tornamos parceiros, aumentamos nosso volume de coletas em 40%. A plataforma é intuitiva
-                  e nos conecta com clientes qualificados que realmente precisam dos nossos serviços."
+                  Desde que nos tornamos parceiros, aumentamos nosso volume de coletas em 40%. A plataforma é intuitiva
+                  e nos conecta com clientes qualificados que realmente precisam dos nossos serviços.
                 </p>
               </CardContent>
             </Card>
@@ -269,8 +269,8 @@ export default function PartnerPage() {
                   </div>
                 </div>
                 <p className="text-gray-600 italic">
-                  "A parceria com a plataforma nos permitiu expandir nossa área de atuação e otimizar nossas rotas de
-                  coleta. O sistema de agendamento é eficiente e o suporte é excelente."
+                  A parceria com a plataforma nos permitiu expandir nossa área de atuação e otimizar nossas rotas de
+                  coleta. O sistema de agendamento é eficiente e o suporte é excelente.
                 </p>
               </CardContent>
             </Card>
@@ -287,8 +287,8 @@ export default function PartnerPage() {
                   </div>
                 </div>
                 <p className="text-gray-600 italic">
-                  "Como uma empresa de pequeno porte, a plataforma nos deu visibilidade e credibilidade no mercado.
-                  Hoje, temos uma agenda cheia de coletas e estamos expandindo nossa equipe."
+                  Como uma empresa de pequeno porte, a plataforma nos deu visibilidade e credibilidade no mercado.
+                  Hoje, temos uma agenda cheia de coletas e estamos expandindo nossa equipe.
                 </p>
               </CardContent>
             </Card>

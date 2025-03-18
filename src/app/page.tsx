@@ -368,8 +368,8 @@ export default function HomePage() {
                   </div>
                 </div>
                 <p className="text-gray-600 italic">
-                  "Plataforma excelente! Agendei pela internet, a empresa parceira chegou no horário marcado e levou
-                  todos os equipamentos que eu não usava mais. Muito prático!"
+                  Plataforma excelente! Agendei pela internet, a empresa parceira chegou no horário marcado e levou
+                  todos os equipamentos que eu não usava mais. Muito prático!
                 </p>
               </CardContent>
             </Card>
@@ -386,8 +386,8 @@ export default function HomePage() {
                   </div>
                 </div>
                 <p className="text-gray-600 italic">
-                  "Estava com vários eletrônicos antigos em casa e não sabia como descartar. Esta plataforma me conectou
-                  com uma empresa de coleta na minha região. Solução perfeita!"
+                  Estava com vários eletrônicos antigos em casa e não sabia como descartar. Esta plataforma me conectou
+                  com uma empresa de coleta na minha região. Solução perfeita!
                 </p>
               </CardContent>
             </Card>
@@ -404,8 +404,8 @@ export default function HomePage() {
                   </div>
                 </div>
                 <p className="text-gray-600 italic">
-                  "Como empresa, precisávamos de uma solução para descartar equipamentos de TI antigos. A plataforma nos
-                  conectou com um parceiro especializado que nos forneceu certificado de descarte."
+                  Como empresa, precisávamos de uma solução para descartar equipamentos de TI antigos. A plataforma nos
+                  conectou com um parceiro especializado que nos forneceu certificado de descarte.
                 </p>
               </CardContent>
             </Card>
