@@ -28,7 +28,7 @@ export const enderecoTable = pgTable("tb_endereco", {
 export const coletaTable = pgTable("tb_coleta", {
   id: uuid().primaryKey().notNull().defaultRandom(),
   status_coleta: varchar({ length: 25 }).notNull(),
-  destinacao_final: varchar({ length: 30 }).notNull(),
+  destinacao_final: varchar({ length: 255 }).notNull(),
   data_coleta: date().notNull(),
   id_usuario: text()
     .notNull()
