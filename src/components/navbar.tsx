@@ -80,7 +80,7 @@ const Navbar = () => {
       <Link href="/" className="hover:text-green-200 transition-colors">
         Início
       </Link>
-      <Link href="/agendar-coleta" className="hover:text-green-200 transition-colors">
+      <Link href="/agendamentos/novo" className="hover:text-green-200 transition-colors">
         Agendar Coleta
       </Link>
       <Link href="/dicas" className="hover:text-green-200 transition-colors">
