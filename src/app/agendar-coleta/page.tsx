@@ -53,7 +53,6 @@ interface ItensDescarte {
 
 export default function AgendarColeta() {
   const [activeTab, setActiveTab] = useState("schedule");
-  const [otherItems, setOtherItems] = useState("");
 
   // Estados para os dados do formulário
   const [formData, setFormData] = useState({

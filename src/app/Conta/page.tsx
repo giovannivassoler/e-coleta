@@ -7,13 +7,12 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
-import { User, CreditCard, Phone, Mail, Lock, Shield, ChevronRight, X, Eye, EyeOff } from "lucide-react"
+import { User, CreditCard, Phone, Mail, Lock, ChevronRight, X, Eye, EyeOff } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import Navbar from "../componentes/navbar"
 import { useSession } from "@/lib/auth/client"
 import { useRouter } from "next/navigation";
-import { db } from "@/lib/db/client"
 
 
 // Simulação de dados do usuário
@@ -34,8 +33,6 @@ export default function MinhaContaPage() {
   // Verifica se tem sessão ativa
   useEffect(() => {
     if (sessao.data) {
-      const name = sessao.data.user.name;
-      db;
     } else if (sessao.isPending === false) {
       router.push("/login");
     }

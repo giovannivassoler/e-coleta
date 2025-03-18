@@ -2,7 +2,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Users, TrendingUp, Award, Map, Calendar, BarChart, Shield, ArrowRight, CheckCircle } from "lucide-react"
+import { Users, TrendingUp, Award, Calendar, Shield, ArrowRight } from "lucide-react"
 import Navbar from "../componentes/navbar"
 import { FooterColeta } from "../componentes/footer"
 
