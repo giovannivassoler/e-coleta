@@ -20,7 +20,6 @@ export const enderecoTable = pgTable("tb_endereco", {
   complemento_end: varchar({ length: 60 }),
   cep_end: char({ length: 8 }).notNull(),
   id_coleta: uuid()
-    .notNull()
     .references(() => coletaTable.id),
 });
 
@@ -28,7 +27,7 @@ export const enderecoTable = pgTable("tb_endereco", {
 export const coletaTable = pgTable("tb_coleta", {
   id: uuid().primaryKey().notNull().defaultRandom(),
   status_coleta: varchar({ length: 25 }).notNull(),
-  destinacao_final: varchar({ length: 255 }).notNull(),
+  destinacao_final: varchar({ length: 255 }).notNull(),// O que a empresa fez com o material coletado
   data_coleta: date().notNull(),
   id_usuario: text()
     .notNull()
