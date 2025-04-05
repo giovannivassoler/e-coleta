@@ -5,10 +5,8 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 
-import { PersonalInfoTab } from "./components/personal-info-tab"
 import { ScheduleTab } from "./components/schedule-tab"
 import { ItemsTab } from "./components/items-tab"
-
 import { BenefitsCard } from "./components/benefits-card"
 import { RecyclingProcessCard } from "./components/recycling-process-card"
 import { HelpCard } from "./components/help-card"
@@ -18,13 +16,11 @@ import { criarPedido } from "./funcao"
 import { useRouter } from "next/navigation"
 
 export default function AgendarColeta() {
-  const [activeTab, setActiveTab] = useState("personal")
+  const [activeTab, setActiveTab] = useState("schedule")
   const { formData } = useFormData()
   const router = useRouter()
 
-  // Check if the address form is valid for the final submit button
   const isAddressFormValid = () => {
-    // Check required fields
     return (
       formData.cep &&
       formData.cep.replace(/\D/g, "").length === 8 &&
@@ -36,11 +32,8 @@ export default function AgendarColeta() {
     )
   }
 
-
-
   const handleSubmit = () => {
-    criarPedido(formData).then(([resultado])=>router.push("/agendamentos/sucesso/"+resultado.id))
-
+    criarPedido(formData).then(([resultado]) => router.push("/agendamentos/sucesso/" + resultado.id))
   }
 
   return (
@@ -62,13 +55,7 @@ export default function AgendarColeta() {
             </CardHeader>
             <CardContent className="pt-6">
               <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsList className="grid w-full grid-cols-4 mb-8 bg-green-100">
-                  <TabsTrigger
-                    value="personal"
-                    className="data-[state=active]:bg-green-600 data-[state=active]:text-white"
-                  >
-                    Dados Pessoais
-                  </TabsTrigger>
+                <TabsList className="grid w-full grid-cols-3 mb-8 bg-green-100">
                   <TabsTrigger
                     value="schedule"
                     className="data-[state=active]:bg-green-600 data-[state=active]:text-white"
@@ -89,12 +76,8 @@ export default function AgendarColeta() {
                   </TabsTrigger>
                 </TabsList>
 
-                <TabsContent value="personal">
-                  <PersonalInfoTab onNext={() => setActiveTab("schedule")} />
-                </TabsContent>
-
                 <TabsContent value="schedule">
-                  <ScheduleTab onNext={() => setActiveTab("items")} onPrevious={() => setActiveTab("personal")} />
+                  <ScheduleTab onNext={() => setActiveTab("items")} />
                 </TabsContent>
 
                 <TabsContent value="items">
@@ -131,4 +114,3 @@ export default function AgendarColeta() {
     </div>
   )
 }
-
