@@ -1,16 +1,17 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Menu, X, Recycle } from "lucide-react"
+import { Menu, X, Recycle, Loader2 } from "lucide-react"
 import { UserButton } from "./BotaoUsuario"
 import Link from "next/link"
 import { useSession } from "@/lib/auth/client"
+import { checkUserCompany } from "./actions"
 
 const Navbar = () => {
   const [menuOpen, setMenuOpen] = useState(false)
-  const { data: session } = useSession()
+  const { data: session, isPending } = useSession()
   const [hasCompany, setHasCompany] = useState(false)
-  const [isLoading, setIsLoading] = useState(true)
+  const [loading, setLoading] = useState(true)
 
   const toggleMenu = () => setMenuOpen(!menuOpen)
 
@@ -19,37 +20,29 @@ const Navbar = () => {
     const checkCompanyMembership = async () => {
       if (!session?.user?.id) {
         setHasCompany(false)
-        setIsLoading(false)
+        setLoading(false)
         return
       }
 
       try {
-        // Directly check if the user has a company by checking the dashboard-empresa page
-        // This is a simpler approach that doesn't require an API route
-        const response = await fetch("/dashboard-empresa", { method: "HEAD" })
-
-        // If the response is 200 OK, the user has access to the dashboard
-        // If it's a redirect (like 307 to /login), they don't
-        setHasCompany(response.ok)
+        // Use our server action to check if the user has a company
+        const result = await checkUserCompany(session.user.id)
+        setHasCompany(result.hasCompany)
       } catch (error) {
-        console.error("Failed to check company membership:", error)
+        console.error("Falha ao checar empresa:", error)
         setHasCompany(false)
       } finally {
-        setIsLoading(false)
+        setLoading(false)
       }
     }
 
-    if (session) {
+    if (session && !isPending) {
       checkCompanyMembership()
-    } else {
+    } else if (!session && !isPending) {
       setHasCompany(false)
-      setIsLoading(false)
+      setLoading(false)
     }
-  }, [session])
-
-  // Always show the link, but change the destination based on hasCompany
-  const partnerLinkText = hasCompany ? "Dashboard Empresa" : "Quero ser um parceiro"
-  const partnerLinkHref = hasCompany ? "/dashboard-empresa" : "/parceiros"
+  }, [session, isPending])
 
   return (
     <header className="bg-gradient-to-r from-green-700 to-emerald-600 text-white py-4 px-6 shadow-md">
@@ -72,9 +65,17 @@ const Navbar = () => {
           <Link href="/dicas" className="hover:text-green-200 transition-colors">
             Dicas
           </Link>
-          {!isLoading && (
-            <Link href={partnerLinkHref} className="hover:text-green-200 transition-colors">
-              {partnerLinkText}
+          {loading ? (
+            <div className="flex items-center gap-2">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              <span>Carregando...</span>
+            </div>
+          ) : (
+            <Link
+              href={hasCompany ? "/dashboard-empresa" : "/parceiros"}
+              className="hover:text-green-200 transition-colors"
+            >
+              {hasCompany ? "Minha Empresa" : "Quero ser um parceiro"}
             </Link>
           )}
           <UserButton />
@@ -92,9 +93,17 @@ const Navbar = () => {
             <Link href="/dicas" className="hover:text-green-200 transition-colors">
               Dicas
             </Link>
-            {!isLoading && (
-              <Link href={partnerLinkHref} className="hover:text-green-200 transition-colors">
-                {partnerLinkText}
+            {loading ? (
+              <div className="flex items-center gap-2">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span>Carregando...</span>
+              </div>
+            ) : (
+              <Link
+                href={hasCompany ? "/dashboard-empresa" : "/parceiros"}
+                className="hover:text-green-200 transition-colors"
+              >
+                {hasCompany ? "Dashboard Empresa" : "Quero ser um parceiro"}
               </Link>
             )}
             <UserButton />

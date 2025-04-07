@@ -360,7 +360,7 @@ export default function DashboardEmpresa() {
         <div className="container mx-auto py-8 px-4">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-green-800">Dashboard da Empresa</h1>
+              <h1 className="text-3xl font-bold text-green-800">Gerenciar Coletas</h1>
               <p className="text-green-600 mt-1">Gerencie as solicitações de coleta de lixo eletrônico</p>
             </div>
             <Button
@@ -768,7 +768,6 @@ export default function DashboardEmpresa() {
 
               {/* Ações */}
               <div className="space-y-4">
-                <h3 className="font-medium text-gray-800">Ações</h3>
                 <div className="flex flex-wrap gap-2">
                   {/* Botões para coletas disponíveis */}
                   {isColetaDisponivel(coletaSelecionada) && (
