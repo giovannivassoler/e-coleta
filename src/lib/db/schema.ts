@@ -2,11 +2,11 @@ import {
   pgTable,
   varchar,
   char,
-  date,
   uuid,
   text,
   timestamp,
   boolean,
+  integer,
 } from "drizzle-orm/pg-core";
 
 // Tabela tb_endereco
@@ -23,12 +23,27 @@ export const enderecoTable = pgTable("tb_endereco", {
     .references(() => coletaTable.id),
 });
 
+// Tabela tb_enderecoEmpresa
+export const enderecoTableEmp = pgTable("tb_enderecoEmp", {
+  id: uuid().primaryKey().notNull().defaultRandom(),
+  endereco_usu: varchar({ length: 45 }).notNull(),
+  num_end: varchar({ length: 45 }).notNull(),
+  bairro_end: varchar({ length: 45 }).notNull(),
+  cidade_end: varchar({ length: 45 }).notNull(),
+  estado_end: varchar({ length: 45 }).notNull(),
+  complemento_end: varchar({ length: 60 }),
+  cep_end: char({ length: 8 }).notNull(),
+  id_empresa: text()
+    .notNull()
+    .references(() => organization.id),
+});
+
 // Tabela tb_coleta
 export const coletaTable = pgTable("tb_coleta", {
   id: uuid().primaryKey().notNull().defaultRandom(),
   status_coleta: varchar({ length: 25 }).notNull(),
-  destinacao_final: varchar({ length: 255 }).notNull(),// O que a empresa fez com o material coletado
-  data_coleta: date().notNull(),
+  destinacao_final: varchar({ length: 255 }),// O que a empresa fez com o material coletado
+  data_coleta: timestamp().notNull(), // Alterado de date() para timestamp()
   id_usuario: text()
     .notNull()
     .references(() => user.id),
@@ -39,6 +54,8 @@ export const coletaTable = pgTable("tb_coleta", {
 export const itensTable = pgTable("tb_itens", {
   id: uuid().primaryKey().notNull().defaultRandom(),
   itens: varchar({ length: 45 }).notNull(),
+  quantidade: integer().notNull().default(1),
+  observacao: varchar({ length: 300 }),
   descricao: varchar({ length: 300 }),
   id_coleta: uuid()
     .notNull()

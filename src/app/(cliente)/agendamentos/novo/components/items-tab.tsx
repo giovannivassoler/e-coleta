@@ -1,9 +1,12 @@
 "use client"
 
+import type React from "react"
+
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { Recycle, Cpu, Monitor, Battery, Smartphone, Tv, Laptop } from "lucide-react"
+import { Recycle, Cpu, Monitor, Battery, Smartphone, Tv, Laptop, Package, ChevronDown, ChevronUp } from "lucide-react"
 import { useFormData } from "../hooks/use-form-data"
+import { Input } from "@/components/ui/input"
 
 interface ItemsTabProps {
   onNext: () => void
@@ -11,9 +14,11 @@ interface ItemsTabProps {
 }
 
 export function ItemsTab({ onNext, onPrevious }: ItemsTabProps) {
-  const { formData, setFormData, toggleWasteItem } = useFormData()
+  const { formData, setFormData, toggleWasteItem, incrementQuantity, decrementQuantity, updateObservacao } =
+    useFormData()
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isFormValid, setIsFormValid] = useState(false)
+  const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>({})
 
   // Validate form fields
   const validateForm = () => {
@@ -48,12 +53,23 @@ export function ItemsTab({ onNext, onPrevious }: ItemsTabProps) {
     }
   }
 
+  // Toggle expanded state for an item
+  const toggleExpanded = (itemType: string, e: React.MouseEvent) => {
+    e.stopPropagation()
+    setExpandedItems((prev) => ({
+      ...prev,
+      [itemType]: !prev[itemType],
+    }))
+  }
+
   const wasteItemsList = [
     {
       id: 1,
       name: "Computador",
       type: "computador",
       selected: formData.itensDescarte.computador,
+      quantity: formData.quantidades.computador,
+      observation: formData.observacoes.computador,
       icon: <Cpu className="h-4 w-4" />,
     },
     {
@@ -61,6 +77,8 @@ export function ItemsTab({ onNext, onPrevious }: ItemsTabProps) {
       name: "Monitor",
       type: "monitores",
       selected: formData.itensDescarte.monitores,
+      quantity: formData.quantidades.monitores,
+      observation: formData.observacoes.monitores,
       icon: <Monitor className="h-4 w-4" />,
     },
     {
@@ -68,6 +86,8 @@ export function ItemsTab({ onNext, onPrevious }: ItemsTabProps) {
       name: "Pilhas e baterias",
       type: "pilhasBaterias",
       selected: formData.itensDescarte.pilhasBaterias,
+      quantity: formData.quantidades.pilhasBaterias,
+      observation: formData.observacoes.pilhasBaterias,
       icon: <Battery className="h-4 w-4" />,
     },
     {
@@ -75,6 +95,8 @@ export function ItemsTab({ onNext, onPrevious }: ItemsTabProps) {
       name: "Celulares",
       type: "celulares",
       selected: formData.itensDescarte.celulares,
+      quantity: formData.quantidades.celulares,
+      observation: formData.observacoes.celulares,
       icon: <Smartphone className="h-4 w-4" />,
     },
     {
@@ -82,6 +104,8 @@ export function ItemsTab({ onNext, onPrevious }: ItemsTabProps) {
       name: "Televisores",
       type: "televisores",
       selected: formData.itensDescarte.televisores,
+      quantity: formData.quantidades.televisores,
+      observation: formData.observacoes.televisores,
       icon: <Tv className="h-4 w-4" />,
     },
     {
@@ -89,28 +113,93 @@ export function ItemsTab({ onNext, onPrevious }: ItemsTabProps) {
       name: "Eletrodomésticos",
       type: "eletrodomesticos",
       selected: formData.itensDescarte.eletrodomesticos,
+      quantity: formData.quantidades.eletrodomesticos,
+      observation: formData.observacoes.eletrodomesticos,
       icon: <Laptop className="h-4 w-4" />,
+    },
+    {
+      id: 7,
+      name: "Outros",
+      type: "outros",
+      selected: formData.itensDescarte.outros,
+      quantity: formData.quantidades.outros,
+      observation: formData.observacoes.outros,
+      icon: <Package className="h-4 w-4" />,
     },
   ]
 
   return (
     <div className="space-y-4">
       <label className="block text-sm font-medium text-gray-700">Selecione os itens para descarte</label>
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 gap-3">
         {wasteItemsList.map((item) => (
-          <div
-            key={item.id}
-            className={`flex items-center gap-2 p-3 rounded-md border cursor-pointer transition-colors ${
-              item.selected ? "bg-green-100 border-green-500" : "border-gray-200 hover:border-green-300"
-            }`}
-            onClick={() => toggleWasteItem(item.id)}
-          >
+          <div key={item.id} className="flex flex-col rounded-md border transition-colors overflow-hidden">
             <div
-              className={`p-2 rounded-full ${item.selected ? "bg-green-500 text-white" : "bg-gray-100 text-gray-500"}`}
+              className={`flex items-center gap-2 p-3 cursor-pointer ${
+                item.selected ? "bg-green-100 border-green-500" : "border-gray-200 hover:border-green-300"
+              }`}
+              onClick={() => toggleWasteItem(item.id)}
             >
-              {item.icon}
+              <div
+                className={`p-2 rounded-full ${item.selected ? "bg-green-500 text-white" : "bg-gray-100 text-gray-500"}`}
+              >
+                {item.icon}
+              </div>
+              <span className="font-medium">{item.name}</span>
+
+              {item.selected && (
+                <>
+                  <div className="flex items-center gap-2 ml-auto">
+                    <button
+                      type="button"
+                      className="w-6 h-6 flex items-center justify-center rounded-full bg-green-100 text-green-700 hover:bg-green-200"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        decrementQuantity(item.type as keyof typeof formData.quantidades)
+                      }}
+                    >
+                      {"-"}
+                    </button>
+                    <span className="w-6 text-center font-medium">{item.quantity}</span>
+                    <button
+                      type="button"
+                      className="w-6 h-6 flex items-center justify-center rounded-full bg-green-100 text-green-700 hover:bg-green-200"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        incrementQuantity(item.type as keyof typeof formData.quantidades)
+                      }}
+                    >
+                      {"+"}
+                    </button>
+                  </div>
+
+                  <button
+                    type="button"
+                    className="ml-2 p-1 rounded-full hover:bg-green-200 text-green-700"
+                    onClick={(e) => toggleExpanded(item.type, e)}
+                    aria-label={expandedItems[item.type] ? "Esconder observações" : "Adicionar observações"}
+                  >
+                    {expandedItems[item.type] ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                  </button>
+                </>
+              )}
             </div>
-            <span className="font-medium">{item.name}</span>
+
+            {/* Observation field - only shown when item is selected and expanded */}
+            {item.selected && expandedItems[item.type] && (
+              <div className="p-3 bg-green-50 border-t border-green-100">
+                <label htmlFor={`obs-${item.type}`} className="block text-xs font-medium text-gray-600 mb-1">
+                  Observações sobre {item.name.toLowerCase()}:
+                </label>
+                <Input
+                  id={`obs-${item.type}`}
+                  value={item.observation}
+                  onChange={(e) => updateObservacao(item.type as keyof typeof formData.observacoes, e.target.value)}
+                  placeholder={`Ex: Modelo, estado de conservação, etc.`}
+                  className="border-green-200 focus:border-green-500 text-sm"
+                />
+              </div>
+            )}
           </div>
         ))}
       </div>

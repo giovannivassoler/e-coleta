@@ -33,7 +33,7 @@ export default function AgendarColeta() {
   }
 
   const handleSubmit = () => {
-    criarPedido(formData).then(([resultado]) => router.push("/agendamentos/sucesso/" + resultado.id))
+    criarPedido(formData).then((resultado) => router.push("/agendamentos/sucesso/" + resultado.id))
   }
 
   return (
@@ -77,8 +77,9 @@ export default function AgendarColeta() {
                 </TabsList>
 
                 <TabsContent value="schedule">
-                  <ScheduleTab onNext={() => setActiveTab("items")} />
+                  <ScheduleTab onNext={() => setActiveTab("items")} onPrevious={() => {}} />
                 </TabsContent>
+
 
                 <TabsContent value="items">
                   <ItemsTab onNext={() => setActiveTab("address")} onPrevious={() => setActiveTab("schedule")} />

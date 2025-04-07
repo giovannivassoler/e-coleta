@@ -33,6 +33,12 @@ export function UserButton() {
     }
   }, [])
 
+  // Função para lidar com o logout
+  const handleLogout = () => {
+    signOut()
+    setDropdownOpen(false)
+  }
+
   // Verifica se tem sessão ativa
   if (!data) {
     return (
@@ -52,8 +58,9 @@ export function UserButton() {
     <div className="relative hidden md:block">
       {/* botão dropdown */}
       {!menuOpen && (
-        <button onClick={toggleDropdown} className="hover:text-green-200 transition-colors">
-          Olá, {data.user.name} <FontAwesomeIcon icon={faAngleDown} />
+        <button onClick={toggleDropdown} className="flex items-center hover:text-green-200 transition-colors">
+          <span>Olá, {data.user.name}</span>
+          <FontAwesomeIcon icon={faAngleDown} className="ml-1" />
         </button>
       )}
 
@@ -61,12 +68,26 @@ export function UserButton() {
       {dropdownOpen && !menuOpen && (
         <div
           ref={dropdownRef}
-          className="absolute right-0 mt-2 w-40 bg-white text-black shadow-lg rounded-lg overflow-hidden"
+          className="absolute right-0 mt-2 w-48 bg-white text-black shadow-lg rounded-lg overflow-hidden z-50"
         >
-          <Link href="/conta" className="block px-4 py-2 hover:bg-gray-200">
+          <Link
+            href="/agendamentos"
+            className="block w-full px-4 py-3 text-left hover:bg-gray-100 transition-colors"
+            onClick={() => setDropdownOpen(false)}
+          >
+            Meus agendamentos
+          </Link>
+          <Link
+            href="/conta"
+            className="block w-full px-4 py-3 text-left hover:bg-gray-100 transition-colors"
+            onClick={() => setDropdownOpen(false)}
+          >
             Minha Conta
           </Link>
-          <button onClick={() => signOut()} className="w-full text-left px-4 py-2 hover:bg-gray-200">
+          <button
+            onClick={handleLogout}
+            className="block w-full px-4 py-3 text-left hover:bg-gray-100 transition-colors"
+          >
             Sair
           </button>
         </div>
@@ -75,7 +96,7 @@ export function UserButton() {
       {/* Mobile Menu */}
       {menuOpen && (
         <div ref={menuRef} className="md:hidden flex flex-col space-y-2 mt-2">
-          <Link href="/minhaconta" className="hover:opacity-80 px-4 py-2">
+          <Link href="/minha-conta" className="hover:opacity-80 px-4 py-2">
             Minha Conta
           </Link>
           <button

@@ -1,71 +1,57 @@
-"use client";
+"use client"
 
-import { useState } from "react";
-import { Menu, X } from "lucide-react";
-import { UserButton } from "./BotaoUsuario";
-import { Recycle } from "lucide-react";
-import Link from "next/link";
+import { useState, useEffect } from "react"
+import { Menu, X, Recycle } from "lucide-react"
+import { UserButton } from "./BotaoUsuario"
+import Link from "next/link"
+import { useSession } from "@/lib/auth/client"
 
 const Navbar = () => {
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false)
+  const { data: session } = useSession()
+  const [hasCompany, setHasCompany] = useState(false)
+  const [loading, setLoading] = useState(true)
 
-  const toggleMenu = () => setMenuOpen(!menuOpen);
+  const toggleMenu = () => setMenuOpen(!menuOpen)
 
-  // const sobreNos = () => {
-  //   const section = document.getElementById("sobre-nos");
-  //   if (section) {
-  //     section.scrollIntoView({ behavior: "smooth" });
-  //   }
-  // };
+  // Check if user has a company when session changes
+  useEffect(() => {
+    const checkCompanyMembership = async () => {
+      if (!session?.user?.id) {
+        setHasCompany(false)
+        setLoading(false)
+        return
+      }
 
-  // const contato = () => {
-  //   const section = document.getElementById("contato");
-  //   if (section) {
-  //     section.scrollIntoView({ behavior: "smooth" });
-  //   }
-  // };
+      try {
+        // Directly check if the user has a company by checking the dashboard-empresa page
+        // This is a simpler approach that doesn't require an API route
+        const response = await fetch("/dashboard-empresa", { method: "HEAD" })
+
+        // If the response is 200 OK, the user has access to the dashboard
+        // If it's a redirect (like 307 to /login), they don't
+        setHasCompany(response.ok)
+      } catch (error) {
+        console.error("Failed to check company membership:", error)
+        setHasCompany(false)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    if (session) {
+      checkCompanyMembership()
+    } else {
+      setHasCompany(false)
+      setLoading(false)
+    }
+  }, [session])
+
+  // Always show the link, but change the destination based on hasCompany
+  const partnerLinkText = hasCompany ? "Dashboard Empresa" : "Quero ser um parceiro"
+  const partnerLinkHref = hasCompany ? "/dashboard-empresa" : "/parceiros"
 
   return (
-    // <nav className="bg-gradient-to-r from-[#3C6499] to-[#375377] text-white px-6 py-4">
-    //   <div className="max-w-7xl mx-auto flex justify-between items-center">
-    //     {/* Logo */}
-    //     <div className="text-xl font-bold">
-    //       <Image
-    //         src="/imagens/logo-horizontal.png"
-    //         alt="People recycling"
-    //         width={250}
-    //         height={250}
-    //         className="object-contain"
-    //       />
-    //     </div>
-
-    //     {/* Botão de menu mobile */}
-    //     <button className="md:hidden" onClick={toggleMenu}>
-    //       {menuOpen ? <X size={28} /> : <Menu size={28} />}
-    //     </button>
-
-    //     {/* Links da Navbar */}
-    //     <div
-    //       className={`md:flex md:space-x-6 ${
-    //         menuOpen
-    //           ? "flex flex-col absolute top-16 left-0 w-full bg-[#3C6499] py-4"
-    //           : "hidden md:flex"
-    //       }`}
-    //     >
-    //       <a href="/" className="hover:opacity-80 px-4 py-2">
-    //         Home
-    //       </a>
-    //       <a href="/agendar-coleta" className="hover:opacity-80 px-4 py-2">
-    //         Agendar Coleta
-    //       </a>
-    //       <a href="/dicas" className="hover:opacity-80 px-4 py-2">
-    //         Dicas
-    //       </a>
-    //       <UserButton />
-    //     </div>
-    //   </div>
-    // </nav>
-
     <header className="bg-gradient-to-r from-green-700 to-emerald-600 text-white py-4 px-6 shadow-md">
       <div className="container mx-auto flex justify-between items-center">
         <div className="flex items-center gap-2">
@@ -77,23 +63,43 @@ const Navbar = () => {
           {menuOpen ? <X size={28} /> : <Menu size={28} />}
         </button>
         <nav className="hidden md:flex gap-6">
-      <Link href="/" className="hover:text-green-200 transition-colors">
-        Início
-      </Link>
-      <Link href="/agendamentos/novo" className="hover:text-green-200 transition-colors">
-        Agendar Coleta
-      </Link>
-      <Link href="/dicas" className="hover:text-green-200 transition-colors">
-        Dicas
-      </Link>
-      <Link href="/parceiro" className="hover:text-green-200 transition-colors">
-        Quero ser um parceiro
-      </Link>
-      <UserButton />
-    </nav>
+          <Link href="/" className="hover:text-green-200 transition-colors">
+            Início
+          </Link>
+          <Link href="/agendamentos/novo" className="hover:text-green-200 transition-colors">
+            Agendar Coleta
+          </Link>
+          <Link href="/dicas" className="hover:text-green-200 transition-colors">
+            Dicas
+          </Link>
+          <Link href={partnerLinkHref} className="hover:text-green-200 transition-colors">
+            {partnerLinkText}
+          </Link>
+          <UserButton />
+        </nav>
+
+        {/* Mobile menu */}
+        {menuOpen && (
+          <div className="md:hidden absolute top-16 left-0 right-0 bg-green-700 p-4 flex flex-col gap-4 z-50">
+            <Link href="/" className="hover:text-green-200 transition-colors">
+              Início
+            </Link>
+            <Link href="/agendamentos/novo" className="hover:text-green-200 transition-colors">
+              Agendar Coleta
+            </Link>
+            <Link href="/dicas" className="hover:text-green-200 transition-colors">
+              Dicas
+            </Link>
+            <Link href={partnerLinkHref} className="hover:text-green-200 transition-colors">
+              {partnerLinkText}
+            </Link>
+            <UserButton />
+          </div>
+        )}
       </div>
     </header>
-  );
-};
+  )
+}
 
-export default Navbar;
+export default Navbar
+
