@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Menu, X, Recycle, Loader2 } from "lucide-react"
+import { Menu, X, Recycle } from "lucide-react"
 import { UserButton } from "./BotaoUsuario"
 import Link from "next/link"
 import { useSession } from "@/lib/auth/client"
@@ -11,7 +11,7 @@ const Navbar = () => {
   const [menuOpen, setMenuOpen] = useState(false)
   const { data: session, isPending } = useSession()
   const [hasCompany, setHasCompany] = useState(false)
-  const [loading, setLoading] = useState(true)
+  const [checkComplete, setCheckComplete] = useState(false)
 
   const toggleMenu = () => setMenuOpen(!menuOpen)
 
@@ -20,7 +20,7 @@ const Navbar = () => {
     const checkCompanyMembership = async () => {
       if (!session?.user?.id) {
         setHasCompany(false)
-        setLoading(false)
+        setCheckComplete(true)
         return
       }
 
@@ -32,17 +32,30 @@ const Navbar = () => {
         console.error("Falha ao checar empresa:", error)
         setHasCompany(false)
       } finally {
-        setLoading(false)
+        setCheckComplete(true)
       }
     }
 
     if (session && !isPending) {
       checkCompanyMembership()
-    } else if (!session && !isPending) {
+    } else if (!isPending) {
       setHasCompany(false)
-      setLoading(false)
+      setCheckComplete(true)
     }
   }, [session, isPending])
+
+  // Determine what to show for the partner/company link
+  const getPartnerLinkText = () => {
+    if (!checkComplete && session) {
+      // Return default text while checking - no loading indicator
+      return "Área do Parceiro"
+    }
+    return hasCompany ? "Minha Empresa" : "Quero ser um parceiro"
+  }
+
+  const getPartnerLinkHref = () => {
+    return hasCompany ? "/dashboard-empresa" : "/parceiro"
+  }
 
   return (
     <header className="bg-gradient-to-r from-green-700 to-emerald-600 text-white py-4 px-6 shadow-md">
@@ -52,7 +65,7 @@ const Navbar = () => {
           <h1 className="text-2xl font-bold">E-Coleta</h1>
         </div>
         {/* Botão de menu mobile */}
-        <button className="md:hidden" onClick={toggleMenu}>
+        <button className="md:hidden" onClick={toggleMenu} aria-label="Toggle menu">
           {menuOpen ? <X size={28} /> : <Menu size={28} />}
         </button>
         <nav className="hidden md:flex gap-6">
@@ -65,19 +78,9 @@ const Navbar = () => {
           <Link href="/dicas" className="hover:text-green-200 transition-colors">
             Dicas
           </Link>
-          {loading ? (
-            <div className="flex items-center gap-2">
-              <Loader2 className="h-4 w-4 animate-spin" />
-              <span>Carregando...</span>
-            </div>
-          ) : (
-            <Link
-              href={hasCompany ? "/dashboard-empresa" : "/parceiro"}
-              className="hover:text-green-200 transition-colors"
-            >
-              {hasCompany ? "Minha Empresa" : "Quero ser um parceiro"}
-            </Link>
-          )}
+          <Link href={getPartnerLinkHref()} className="hover:text-green-200 transition-colors">
+            {getPartnerLinkText()}
+          </Link>
           <UserButton />
         </nav>
 
@@ -93,19 +96,9 @@ const Navbar = () => {
             <Link href="/dicas" className="hover:text-green-200 transition-colors">
               Dicas
             </Link>
-            {loading ? (
-              <div className="flex items-center gap-2">
-                <Loader2 className="h-4 w-4 animate-spin" />
-                <span>Carregando...</span>
-              </div>
-            ) : (
-              <Link
-                href={hasCompany ? "/dashboard-empresa" : "/parceiro"}
-                className="hover:text-green-200 transition-colors"
-              >
-                {hasCompany ? "Dashboard Empresa" : "Quero ser um parceiro"}
-              </Link>
-            )}
+            <Link href={getPartnerLinkHref()} className="hover:text-green-200 transition-colors">
+              {getPartnerLinkText()}
+            </Link>
             <UserButton />
           </div>
         )}
