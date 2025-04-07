@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Recycle, Cpu, Monitor, Battery, Smartphone, Tv, Laptop, Package, ChevronDown, ChevronUp } from "lucide-react"
 import { useFormData } from "../hooks/use-form-data"
@@ -20,8 +20,8 @@ export function ItemsTab({ onNext, onPrevious }: ItemsTabProps) {
   const [isFormValid, setIsFormValid] = useState(false)
   const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>({})
 
-  // Validate form fields
-  const validateForm = () => {
+  // Validate form fields - wrapped in useCallback to prevent infinite loops
+  const validateForm = useCallback(() => {
     const newErrors: Record<string, string> = {}
 
     // Check if at least one item is selected
@@ -38,12 +38,12 @@ export function ItemsTab({ onNext, onPrevious }: ItemsTabProps) {
 
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
-  }
+  }, [formData.itensDescarte, formData.descricao])
 
   // Check form validity whenever form data changes
   useEffect(() => {
     setIsFormValid(validateForm())
-  }, [formData.itensDescarte, formData.descricao])
+  }, [formData.itensDescarte, formData.descricao, validateForm])
 
   // Handle next button click
   const handleNext = () => {

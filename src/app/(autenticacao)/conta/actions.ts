@@ -237,12 +237,13 @@ export async function atualizarSenha({
       success: true,
       message: "Senha atualizada com sucesso",
     }
-  } catch (error: any) {
-    console.error("Erro ao atualizar senha:", error)
+  } catch (error: unknown) {
+    // Then modify the error.message access to safely handle the unknown type
+    const errorMessage = error instanceof Error ? error.message : "Erro desconhecido ao atualizar senha."
 
     return {
       success: false,
-      message: error.message || "Erro ao atualizar senha. Tente novamente mais tarde.",
+      message: errorMessage || "Erro ao atualizar senha. Tente novamente mais tarde.",
     }
   }
 }

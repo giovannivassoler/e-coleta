@@ -10,7 +10,7 @@ const Navbar = () => {
   const [menuOpen, setMenuOpen] = useState(false)
   const { data: session } = useSession()
   const [hasCompany, setHasCompany] = useState(false)
-  const [loading, setLoading] = useState(true)
+  const [isLoading, setIsLoading] = useState(true)
 
   const toggleMenu = () => setMenuOpen(!menuOpen)
 
@@ -19,7 +19,7 @@ const Navbar = () => {
     const checkCompanyMembership = async () => {
       if (!session?.user?.id) {
         setHasCompany(false)
-        setLoading(false)
+        setIsLoading(false)
         return
       }
 
@@ -35,7 +35,7 @@ const Navbar = () => {
         console.error("Failed to check company membership:", error)
         setHasCompany(false)
       } finally {
-        setLoading(false)
+        setIsLoading(false)
       }
     }
 
@@ -43,7 +43,7 @@ const Navbar = () => {
       checkCompanyMembership()
     } else {
       setHasCompany(false)
-      setLoading(false)
+      setIsLoading(false)
     }
   }, [session])
 
@@ -72,9 +72,11 @@ const Navbar = () => {
           <Link href="/dicas" className="hover:text-green-200 transition-colors">
             Dicas
           </Link>
-          <Link href={partnerLinkHref} className="hover:text-green-200 transition-colors">
-            {partnerLinkText}
-          </Link>
+          {!isLoading && (
+            <Link href={partnerLinkHref} className="hover:text-green-200 transition-colors">
+              {partnerLinkText}
+            </Link>
+          )}
           <UserButton />
         </nav>
 
@@ -90,9 +92,11 @@ const Navbar = () => {
             <Link href="/dicas" className="hover:text-green-200 transition-colors">
               Dicas
             </Link>
-            <Link href={partnerLinkHref} className="hover:text-green-200 transition-colors">
-              {partnerLinkText}
-            </Link>
+            {!isLoading && (
+              <Link href={partnerLinkHref} className="hover:text-green-200 transition-colors">
+                {partnerLinkText}
+              </Link>
+            )}
             <UserButton />
           </div>
         )}

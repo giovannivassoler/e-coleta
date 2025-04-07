@@ -98,9 +98,10 @@ export async function consultarCNPJ(cnpj: string): Promise<CNPJResponse | null> 
       uf: data.uf,
       cep: data.cep.replace(/\D/g, "").replace(/^(\d{5})(\d{3})$/, "$1-$2"),
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Erro ao consultar CNPJ:", error)
-    throw new Error(`Erro ao consultar CNPJ: ${error.message || "Erro desconhecido"}`)
+    const errorMessage = error instanceof Error ? error.message : "Erro desconhecido"
+    throw new Error(`Erro ao consultar CNPJ: ${errorMessage}`)
   }
 }
 
@@ -142,9 +143,10 @@ export async function consultarCEP(cep: string) {
       cidade: data.localidade,
       estado: data.uf,
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Erro ao consultar CEP:", error)
-    throw new Error(`Erro ao consultar CEP: ${error.message || "Erro desconhecido"}`)
+    const errorMessage = error instanceof Error ? error.message : "Erro desconhecido"
+    throw new Error(`Erro ao consultar CEP: ${errorMessage}`)
   }
 }
 

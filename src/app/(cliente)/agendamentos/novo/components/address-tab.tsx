@@ -2,12 +2,11 @@
 
 import type React from "react"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Loader2 } from "lucide-react"
 import { useFormData } from "../hooks/use-form-data"
-
 
 interface ViaCepResponse {
   cep: string
@@ -28,10 +27,9 @@ export function AddressTab({ onPrevious }: AddressTabProps) {
   const [isLoadingCep, setIsLoadingCep] = useState(false)
   const [cepError, setCepError] = useState<string | null>(null)
   const [errors, setErrors] = useState<Record<string, string>>({})
-  const [_isFormValid, setIsFormValid] = useState(false)
 
   // Validate form fields
-  const validateForm = () => {
+  const validateForm = useCallback(() => {
     const newErrors: Record<string, string> = {}
 
     // Validate CEP
@@ -68,49 +66,60 @@ export function AddressTab({ onPrevious }: AddressTabProps) {
 
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
-  }
-
-  // Check form validity whenever form data changes
-  useEffect(() => {
-    setIsFormValid(validateForm())
   }, [formData.cep, formData.endereco, formData.numero, formData.bairro, formData.cidade, formData.estado])
 
+  // Update validation whenever form data changes
+  useEffect(() => {
+    validateForm()
+  }, [
+    formData.cep,
+    formData.endereco,
+    formData.numero,
+    formData.bairro,
+    formData.cidade,
+    formData.estado,
+    validateForm,
+  ])
+
   // Função para buscar endereço pelo CEP
-  const fetchAddressByCep = async (cep: string) => {
-    if (!cep || cep.length !== 9) return
+  const fetchAddressByCep = useCallback(
+    async (cep: string) => {
+      if (!cep || cep.length !== 9) return
 
-    // Remove caracteres não numéricos
-    const cleanCep = cep.replace(/\D/g, "")
+      // Remove caracteres não numéricos
+      const cleanCep = cep.replace(/\D/g, "")
 
-    if (cleanCep.length !== 8) return
+      if (cleanCep.length !== 8) return
 
-    setIsLoadingCep(true)
-    setCepError(null)
+      setIsLoadingCep(true)
+      setCepError(null)
 
-    try {
-      const response = await fetch(`https://viacep.com.br/ws/${cleanCep}/json/`)
-      const data: ViaCepResponse = await response.json()
+      try {
+        const response = await fetch(`https://viacep.com.br/ws/${cleanCep}/json/`)
+        const data: ViaCepResponse = await response.json()
 
-      if (data.erro) {
-        setCepError("CEP não encontrado")
-        return
+        if (data.erro) {
+          setCepError("CEP não encontrado")
+          return
+        }
+
+        setFormData((prev) => ({
+          ...prev,
+          endereco: data.logradouro,
+          bairro: data.bairro,
+          cidade: data.localidade,
+          estado: data.uf,
+          complemento: data.complemento || prev.complemento,
+        }))
+      } catch (error) {
+        setCepError("Erro ao buscar o CEP. Tente novamente.")
+        console.error("Erro ao buscar CEP:", error)
+      } finally {
+        setIsLoadingCep(false)
       }
-
-      setFormData((prev) => ({
-        ...prev,
-        endereco: data.logradouro,
-        bairro: data.bairro,
-        cidade: data.localidade,
-        estado: data.uf,
-        complemento: data.complemento || prev.complemento,
-      }))
-    } catch (error) {
-      setCepError("Erro ao buscar o CEP. Tente novamente.")
-      console.error("Erro ao buscar CEP:", error)
-    } finally {
-      setIsLoadingCep(false)
-    }
-  }
+    },
+    [setFormData],
+  )
 
   // Formatar o CEP enquanto o usuário digita (99999-999)
   const handleCepChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -150,7 +159,7 @@ export function AddressTab({ onPrevious }: AddressTabProps) {
     if (cepWithoutMask.length === 8) {
       fetchAddressByCep(formData.cep)
     }
-  }, [formData.cep])
+  }, [formData.cep, fetchAddressByCep])
 
   const handleAddressChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target

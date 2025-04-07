@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -81,17 +81,8 @@ export default function MinhaContaPage() {
     }, 3000)
   }
 
-  // Verifica se tem sessão ativa
-  useEffect(() => {
-    if (sessao.data) {
-      carregarDadosUsuario()
-    } else if (sessao.isPending === false) {
-      router.push("/login")
-    }
-  }, [sessao, router])
-
-  // Função para carregar dados do usuário
-  const carregarDadosUsuario = async () => {
+  // Função para carregar dados do usuário - Usando useCallback para evitar recriação
+  const carregarDadosUsuario = useCallback(async () => {
     if (!sessao.data?.user?.id) return
 
     try {
@@ -112,7 +103,16 @@ export default function MinhaContaPage() {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [sessao.data?.user?.id])
+
+  // Verifica se tem sessão ativa
+  useEffect(() => {
+    if (sessao.data) {
+      carregarDadosUsuario()
+    } else if (sessao.isPending === false) {
+      router.push("/login")
+    }
+  }, [sessao, router, carregarDadosUsuario])
 
   // Função para formatar telefone
   const formatarTelefone = (valor: string) => {
@@ -248,9 +248,10 @@ export default function MinhaContaPage() {
       } else {
         setPasswordError(resultado.message || "Erro ao atualizar senha")
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Erro ao alterar senha:", error)
-      setPasswordError(error.message || "Erro ao atualizar senha")
+      const errorMessage = error instanceof Error ? error.message : "Erro desconhecido ao atualizar senha"
+      setPasswordError(errorMessage)
     } finally {
       setIsSaving(false)
     }

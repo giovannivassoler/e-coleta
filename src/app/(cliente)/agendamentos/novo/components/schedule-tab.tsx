@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { CalendarIcon, Clock, ChevronLeft, ChevronRight } from "lucide-react"
@@ -36,8 +36,8 @@ export function ScheduleTab({ onNext, onPrevious }: ScheduleTabProps) {
   const maxDate = new Date(today)
   maxDate.setMonth(today.getMonth() + 2) // 2 meses a partir de hoje
 
-  // Validate form fields
-  const validateForm = () => {
+  // Validate form fields - wrapped in useCallback to prevent infinite loops
+  const validateForm = useCallback(() => {
     const newErrors: Record<string, string> = {}
 
     // Validate date
@@ -52,12 +52,12 @@ export function ScheduleTab({ onNext, onPrevious }: ScheduleTabProps) {
 
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
-  }
+  }, [formData.data, formData.horario])
 
   // Check form validity whenever form data changes
   useEffect(() => {
     setIsFormValid(validateForm())
-  }, [formData.data, formData.horario])
+  }, [formData.data, formData.horario, validateForm])
 
   // Handle next button click
   const handleNext = () => {

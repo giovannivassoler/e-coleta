@@ -118,9 +118,9 @@ export async function buscarColetasEmpresa() {
     }
 
     return coletasCompletas
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Erro ao buscar coletas da empresa:", error)
-    throw new Error(error.message || "Erro ao buscar coletas da empresa")
+    throw new Error(error instanceof Error ? error.message : "Erro ao buscar coletas da empresa")
   }
 }
 
@@ -177,14 +177,14 @@ export async function aceitarColeta(coletaId: string) {
       .where(eq(coletaTable.id, coletaId))
 
     return { success: true }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Erro ao aceitar coleta:", error)
-    throw new Error(error.message || "Erro ao aceitar coleta")
+    throw new Error(error instanceof Error ? error.message : "Erro ao aceitar coleta")
   }
 }
 
 // Função para recusar uma coleta (apenas remove da lista de disponíveis para esta empresa)
-export async function recusarColeta(coletaId: string) {
+export async function recusarColeta() {
   try {
     // Verificar autenticação
     const sessao = await auth.api.getSession({
@@ -198,9 +198,9 @@ export async function recusarColeta(coletaId: string) {
     // Não fazemos nada no banco de dados, apenas retornamos sucesso
     // A coleta continuará disponível para outras empresas
     return { success: true }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Erro ao recusar coleta:", error)
-    throw new Error(error.message || "Erro ao recusar coleta")
+    throw new Error(error instanceof Error ? error.message : "Erro ao recusar coleta")
   }
 }
 
@@ -247,9 +247,9 @@ export async function atualizarStatusColeta(coletaId: string, novoStatus: string
     await db.update(coletaTable).set({ status_coleta: novoStatus }).where(eq(coletaTable.id, coletaId))
 
     return { success: true }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Erro ao atualizar status da coleta:", error)
-    throw new Error(error.message || "Erro ao atualizar status da coleta")
+    throw new Error(error instanceof Error ? error.message : "Erro ao atualizar status da coleta")
   }
 }
 

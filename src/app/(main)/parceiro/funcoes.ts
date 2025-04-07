@@ -69,11 +69,11 @@ export async function updateEmpresa(
     }
 
     return { status: "Sucesso", mensagem: "Empresa atualizada com sucesso" }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Erro ao atualizar empresa:", error)
     return {
       status: "Erro",
-      mensagem: error.message || "Erro ao atualizar empresa",
+      mensagem: error instanceof Error ? error.message : "Erro ao atualizar empresa",
     }
   }
 }

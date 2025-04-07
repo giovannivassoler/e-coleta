@@ -9,7 +9,18 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
-import { ArrowRight, Loader2, Search, AlertCircle, CheckCircle, Users, TrendingUp, Award, Shield, Calendar } from "lucide-react"
+import {
+  ArrowRight,
+  Loader2,
+  Search,
+  AlertCircle,
+  CheckCircle,
+  Users,
+  TrendingUp,
+  Award,
+  Shield,
+  Calendar,
+} from "lucide-react"
 import { Separator } from "@/components/ui/separator"
 
 import { organization, useSession } from "@/lib/auth/client"
@@ -90,8 +101,6 @@ export default function PartnerPage() {
       .substring(0, 15)
   }
 
-
-
   // Função para formatar CEP
   const formatarCEP = (valor: string) => {
     return valor
@@ -151,8 +160,12 @@ export default function PartnerPage() {
         // CNPJ válido mas não encontrado
         setCnpjError("CNPJ válido, mas não encontramos dados cadastrados. Por favor, preencha os campos manualmente.")
       }
-    } catch (error: any) {
-      setCnpjError(error.message || "Erro ao consultar o CNPJ. Tente novamente ou preencha os campos manualmente.")
+    } catch (error: unknown) {
+      setCnpjError(
+        error instanceof Error
+          ? error.message
+          : "Erro ao consultar o CNPJ. Tente novamente ou preencha os campos manualmente.",
+      )
       console.error("Erro ao buscar dados do CNPJ:", error)
     } finally {
       setIsSearchingCnpj(false)
@@ -302,13 +315,15 @@ export default function PartnerPage() {
               }, 3000)
             }
           },
-          onError: (error: any) => {
-            setError("Erro ao criar a empresa: " + (error.message || "Erro desconhecido"))
+          onError: (error: unknown) => {
+            setError("Erro ao criar a empresa: " + (error instanceof Error ? error.message : "Erro desconhecido"))
           },
         },
       )
-    } catch (err: any) {
-      setError("Ocorreu um erro ao processar sua solicitação: " + err.message)
+    } catch (err: unknown) {
+      setError(
+        "Ocorreu um erro ao processar sua solicitação: " + (err instanceof Error ? err.message : "Erro desconhecido"),
+      )
     } finally {
       setIsSubmitting(false)
     }
@@ -397,8 +412,7 @@ export default function PartnerPage() {
               </CardHeader>
               <CardContent className="pt-6">
                 <p className="text-gray-600">
-                  Ganhe visibilidade e
-                  credibilidade como uma empresa comprometida com a sustentabilidade.
+                  Ganhe visibilidade e credibilidade como uma empresa comprometida com a sustentabilidade.
                 </p>
               </CardContent>
             </Card>
@@ -425,9 +439,7 @@ export default function PartnerPage() {
                 <CardTitle className="text-xl font-bold text-green-800">Cadastro</CardTitle>
               </CardHeader>
               <CardContent className="pt-4">
-                <p className="text-gray-600">
-                  Preencha o formulário de parceria com os dados da sua empresa
-                </p>
+                <p className="text-gray-600">Preencha o formulário de parceria com os dados da sua empresa</p>
               </CardContent>
             </Card>
 
@@ -468,9 +480,7 @@ export default function PartnerPage() {
                 <CardTitle className="text-xl font-bold text-green-800">Crescimento</CardTitle>
               </CardHeader>
               <CardContent className="pt-4">
-                <p className="text-gray-600">
-                  Gerencie suas coletas e expanda seus negócios com nossa plataforma.
-                </p>
+                <p className="text-gray-600">Gerencie suas coletas e expanda seus negócios com nossa plataforma.</p>
               </CardContent>
             </Card>
           </div>
@@ -483,7 +493,6 @@ export default function PartnerPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div className="order-2 lg:order-1">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
                 <div className="bg-white p-6 rounded-lg shadow-md border border-green-100">
                   <div className="p-2 rounded-full bg-green-100 text-green-600 w-fit mb-4">
                     <Calendar className="h-6 w-6" />
@@ -585,8 +594,8 @@ export default function PartnerPage() {
                   </div>
                 </div>
                 <p className="text-gray-600 italic">
-                  Como uma empresa de pequeno porte, a plataforma nos deu visibilidade e credibilidade no mercado.
-                  Hoje, temos uma agenda cheia de coletas e estamos expandindo nossa equipe.
+                  Como uma empresa de pequeno porte, a plataforma nos deu visibilidade e credibilidade no mercado. Hoje,
+                  temos uma agenda cheia de coletas e estamos expandindo nossa equipe.
                 </p>
               </CardContent>
             </Card>

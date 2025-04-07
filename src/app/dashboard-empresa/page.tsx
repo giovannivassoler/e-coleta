@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { useSession } from "@/lib/auth/client"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -93,35 +93,8 @@ export default function DashboardEmpresa() {
     }
   }, [session])
 
-  // Filtrar coletas quando o filtro ou termo de busca mudar
-  useEffect(() => {
-    filtrarColetas()
-  }, [filtroStatus, termoBusca, coletas, coletasRecusadas])
-
-  // Função para carregar coletas
-  const carregarColetas = async () => {
-    try {
-      setLoading(true)
-      const dados = await buscarColetasEmpresa()
-
-      // Converter datas para objetos Date
-      const coletasFormatadas = dados.map((coleta) => ({
-        ...coleta,
-        data_coleta: new Date(coleta.data_coleta),
-      }))
-
-      setColetas(coletasFormatadas)
-      setError(null)
-    } catch (err: any) {
-      console.error("Erro ao carregar coletas:", err)
-      setError(err.message || "Não foi possível carregar as coletas. Tente novamente mais tarde.")
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  // Função para filtrar coletas
-  const filtrarColetas = () => {
+  // Função para filtrar coletas - transformada em useCallback para evitar dependência cíclica
+  const filtrarColetas = useCallback(() => {
     let coletasFiltradas = [...coletas]
 
     // Remover coletas recusadas da lista
@@ -149,6 +122,33 @@ export default function DashboardEmpresa() {
     }
 
     setColetasFiltradas(coletasFiltradas)
+  }, [coletas, coletasRecusadas, filtroStatus, termoBusca])
+
+  // Filtrar coletas quando o filtro ou termo de busca mudar
+  useEffect(() => {
+    filtrarColetas()
+  }, [filtrarColetas])
+
+  // Função para carregar coletas
+  const carregarColetas = async () => {
+    try {
+      setLoading(true)
+      const dados = await buscarColetasEmpresa()
+
+      // Converter datas para objetos Date
+      const coletasFormatadas = dados.map((coleta) => ({
+        ...coleta,
+        data_coleta: new Date(coleta.data_coleta),
+      }))
+
+      setColetas(coletasFormatadas)
+      setError(null)
+    } catch (err: unknown) {
+      console.error("Erro ao carregar coletas:", err)
+      setError(err instanceof Error ? err.message : "Não foi possível carregar as coletas. Tente novamente mais tarde.")
+    } finally {
+      setLoading(false)
+    }
   }
 
   // Função para abrir modal de detalhes
@@ -197,9 +197,9 @@ export default function DashboardEmpresa() {
       if (modalDetalhesAberto) {
         fecharDetalhes()
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Erro ao aceitar coleta:", err)
-      setError(err.message || "Erro ao aceitar coleta")
+      setError(err instanceof Error ? err.message : "Erro ao aceitar coleta")
     } finally {
       setAtualizandoStatus(false)
     }
@@ -209,7 +209,7 @@ export default function DashboardEmpresa() {
   const handleRecusarColeta = async (coletaId: string) => {
     try {
       setAtualizandoStatus(true)
-      await recusarColeta(coletaId)
+      await recusarColeta()
 
       // Adicionar à lista de coletas recusadas
       setColetasRecusadas((prev) => new Set(prev).add(coletaId))
@@ -218,9 +218,9 @@ export default function DashboardEmpresa() {
       if (modalDetalhesAberto && coletaSelecionada?.id === coletaId) {
         fecharDetalhes()
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Erro ao recusar coleta:", err)
-      setError(err.message || "Erro ao recusar coleta")
+      setError(err instanceof Error ? err.message : "Erro ao recusar coleta")
     } finally {
       setAtualizandoStatus(false)
     }
@@ -245,9 +245,9 @@ export default function DashboardEmpresa() {
       if (coletaSelecionada && coletaSelecionada.id === coletaId) {
         setColetaSelecionada({ ...coletaSelecionada, status_coleta: novoStatus })
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Erro ao atualizar status:", err)
-      setError(err.message || "Erro ao atualizar status da coleta")
+      setError(err instanceof Error ? err.message : "Erro ao atualizar status da coleta")
     } finally {
       setAtualizandoStatus(false)
     }

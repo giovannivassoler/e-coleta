@@ -122,11 +122,11 @@ export default function AgendamentosPage() {
         tipo: "sucesso",
         texto: "Coleta cancelada com sucesso!",
       })
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Erro ao cancelar coleta:", err)
       setMensagemCancelamento({
         tipo: "erro",
-        texto: err.message || "Não foi possível cancelar a coleta. Tente novamente mais tarde.",
+        texto: err instanceof Error ? err.message : "Não foi possível cancelar a coleta. Tente novamente mais tarde.",
       })
     } finally {
       setCancelando(false)
