@@ -72,7 +72,7 @@ const Navbar = () => {
             </div>
           ) : (
             <Link
-              href={hasCompany ? "/dashboard-empresa" : "/parceiros"}
+              href={hasCompany ? "/dashboard-empresa" : "/parceiro"}
               className="hover:text-green-200 transition-colors"
             >
               {hasCompany ? "Minha Empresa" : "Quero ser um parceiro"}
@@ -100,7 +100,7 @@ const Navbar = () => {
               </div>
             ) : (
               <Link
-                href={hasCompany ? "/dashboard-empresa" : "/parceiros"}
+                href={hasCompany ? "/dashboard-empresa" : "/parceiro"}
                 className="hover:text-green-200 transition-colors"
               >
                 {hasCompany ? "Dashboard Empresa" : "Quero ser um parceiro"}
