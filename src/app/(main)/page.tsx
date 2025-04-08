@@ -24,7 +24,7 @@ export default function HomePage() {
                 coleta e reciclagem na sua região.
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
-                <Link href="/agendar-coleta">
+                <Link href="/agendamentos/novo">
                   <Button className="bg-green-600 hover:bg-green-700 text-white px-8 py-6 text-lg h-auto">
                     Agendar Coleta
                     <ArrowRight className="ml-2 h-5 w-5" />
@@ -260,7 +260,7 @@ export default function HomePage() {
                 Trabalhamos apenas com parceiros certificados que garantem que cada componente seja tratado de acordo
                 com as melhores práticas ambientais, minimizando o impacto no meio ambiente.
               </p><br></br>
-              <Link href="/agendar-coleta">
+              <Link href="/agendamentos/novo">
                 <Button className="bg-green-600 hover:bg-green-700 text-white">Agendar Coleta Agora</Button>
               </Link>
             </div>
@@ -330,7 +330,7 @@ export default function HomePage() {
             mais sustentável. É rápido, fácil e você estará fazendo a sua parte pelo meio ambiente.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/agendar-coleta">
+            <Link href="/agendamentos/novo">
               <Button className="bg-white text-green-700 hover:bg-green-50 px-8 py-6 text-lg h-auto">
                 Agendar Coleta
               </Button>
