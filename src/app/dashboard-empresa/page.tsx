@@ -208,8 +208,9 @@ export default function DashboardEmpresa() {
   // Função para recusar uma coleta
   const handleRecusarColeta = async (coletaId: string) => {
     try {
+      if (!session?.session.activeOrganizationId) return
       setAtualizandoStatus(true)
-      await recusarColeta()
+      await recusarColeta(coletaId,session?.session.activeOrganizationId)
 
       // Adicionar à lista de coletas recusadas
       setColetasRecusadas((prev) => new Set(prev).add(coletaId))

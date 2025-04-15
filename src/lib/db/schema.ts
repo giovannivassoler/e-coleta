@@ -7,6 +7,7 @@ import {
   timestamp,
   boolean,
   integer,
+  serial,
 } from "drizzle-orm/pg-core";
 
 // Tabela tb_endereco
@@ -131,6 +132,12 @@ export const organization = pgTable("organization", {
   metadata: text("metadata"),
   cnpj: char({ length: 14 }).unique(),
   tel_emp: varchar({ length: 18 }),
+});
+
+export const coletasRecusadas = pgTable("coletas_recusadas", {
+  id: serial("id").primaryKey(),
+  organizationId: text("organization_id").notNull().references(()=>organization.id),
+  coletaId: uuid("coleta_id").notNull().references(()=>coletaTable.id),
 });
 
 export const member = pgTable("member", {

@@ -2,7 +2,7 @@
 
 import { auth } from "@/lib/auth/config"
 import { db } from "@/lib/db/client"
-import { organization, member, coletaTable, enderecoTable, itensTable, user } from "@/lib/db/schema"
+import { organization, member, coletaTable, enderecoTable, itensTable, user, coletasRecusadas } from "@/lib/db/schema"
 import { eq, and, isNull, or } from "drizzle-orm"
 import { headers } from "next/headers"
 import { desc } from "drizzle-orm"
@@ -69,6 +69,8 @@ export async function buscarColetasEmpresa() {
       throw new Error("Empresa não encontrada para este usuário")
     }
 
+    
+
     // Buscar coletas que:
     // 1. Pertencem à empresa do usuário (qualquer status)
     // 2. OU têm status "Solicitado" e não estão associadas a nenhuma empresa
@@ -85,6 +87,13 @@ export async function buscarColetasEmpresa() {
 
     // Para cada coleta, buscar informações relacionadas
     for (const coleta of coletas) {
+
+      const [isRecusada] = await db.select()
+      .from(coletasRecusadas)
+      .where(eq(coletasRecusadas.coletaId,coleta.id))
+
+      if (isRecusada) continue;
+
       // Buscar endereço
       const endereco = await db.query.enderecoTable.findFirst({
         where: eq(enderecoTable.id_coleta, coleta.id),
@@ -184,7 +193,7 @@ export async function aceitarColeta(coletaId: string) {
 }
 
 // Função para recusar uma coleta (apenas remove da lista de disponíveis para esta empresa)
-export async function recusarColeta() {
+export async function recusarColeta(coletaId: string, organizationId:string) {
   try {
     // Verificar autenticação
     const sessao = await auth.api.getSession({
@@ -195,8 +204,9 @@ export async function recusarColeta() {
       throw new Error("Não autorizado: Usuário não está autenticado")
     }
 
-    // Não fazemos nada no banco de dados, apenas retornamos sucesso
-    // A coleta continuará disponível para outras empresas
+   await db.insert(coletasRecusadas).values({
+    coletaId, organizationId
+   })
     return { success: true }
   } catch (error: unknown) {
     console.error("Erro ao recusar coleta:", error)
