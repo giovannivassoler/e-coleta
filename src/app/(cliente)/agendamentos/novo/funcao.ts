@@ -43,7 +43,7 @@ export async function criarPedido(formData: FormData) {
     .insert(coletaTable)
     .values({
       data_coleta: dataHoraColeta,
-      destinacao_final: null, // Deixar como null, pois o endereço vai para outra tabela
+      destinacao_final: null, 
       id_usuario: idUsuario,
       status_coleta: "Solicitado",
     })
