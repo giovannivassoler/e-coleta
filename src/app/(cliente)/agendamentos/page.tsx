@@ -14,8 +14,11 @@ import {
   Truck,
   ArrowLeft,
   Leaf,
+  CalendarClock,
+  ThumbsUp,
+  ThumbsDown,
 } from "lucide-react"
-import { buscarAgendamentos, cancelarColeta } from "./actions"
+import { buscarAgendamentos, cancelarColeta, aceitarAlteracaoDataHora, recusarAlteracaoDataHora } from "./actions"
 
 // Tipos para os dados
 interface Endereco {
@@ -38,6 +41,13 @@ interface Item {
   id_coleta: string
 }
 
+interface AlteracaoPendente {
+  id: string
+  dataHoraOriginal: string
+  dataHoraProposta: string
+  empresaId: string
+}
+
 interface Coleta {
   id: string
   status_coleta: string
@@ -47,6 +57,7 @@ interface Coleta {
   id_empresa: string | null
   endereco?: Endereco
   itens: Item[]
+  alteracaoPendente: AlteracaoPendente | null
 }
 
 export default function AgendamentosPage() {
@@ -57,9 +68,11 @@ export default function AgendamentosPage() {
   const [selectedColeta, setSelectedColeta] = useState<Coleta | null>(null)
   const [detailsOpen, setDetailsOpen] = useState(false)
   const [cancelando, setCancelando] = useState(false)
+  const [processandoAlteracao, setProcessandoAlteracao] = useState(false)
   const [mensagemCancelamento, setMensagemCancelamento] = useState<{ tipo: "sucesso" | "erro"; texto: string } | null>(
     null,
   )
+  const [mensagemAlteracao, setMensagemAlteracao] = useState<{ tipo: "sucesso" | "erro"; texto: string } | null>(null)
 
   // Função para carregar os agendamentos
   const carregarAgendamentos = async () => {
@@ -84,8 +97,9 @@ export default function AgendamentosPage() {
   const openDetails = (coleta: Coleta) => {
     setSelectedColeta(coleta)
     setDetailsOpen(true)
-    // Limpar mensagem de cancelamento ao abrir o modal
+    // Limpar mensagens ao abrir o modal
     setMensagemCancelamento(null)
+    setMensagemAlteracao(null)
     // Impedir o scroll da página quando o modal está aberto
     document.body.style.overflow = "hidden"
   }
@@ -133,25 +147,192 @@ export default function AgendamentosPage() {
     }
   }
 
+  // Função para aceitar alteração de data/hora
+  const handleAceitarAlteracao = async () => {
+    if (!selectedColeta || !selectedColeta.alteracaoPendente) return
+
+    try {
+      setProcessandoAlteracao(true)
+      setMensagemAlteracao(null)
+
+      await aceitarAlteracaoDataHora(selectedColeta.alteracaoPendente.id, selectedColeta.id)
+
+      // Atualizar a coleta na interface
+      const novaDataColeta = new Date(selectedColeta.alteracaoPendente.dataHoraProposta)
+
+      setSelectedColeta({
+        ...selectedColeta,
+        data_coleta: novaDataColeta,
+        alteracaoPendente: null,
+      })
+
+      // Atualizar a lista de agendamentos
+      setAgendamentos((prev) =>
+        prev.map((coleta) =>
+          coleta.id === selectedColeta.id
+            ? {
+                ...coleta,
+                data_coleta: novaDataColeta,
+                alteracaoPendente: null,
+              }
+            : coleta,
+        ),
+      )
+
+      setMensagemAlteracao({
+        tipo: "sucesso",
+        texto: "Alteração de data/hora aceita com sucesso!",
+      })
+    } catch (err: unknown) {
+      console.error("Erro ao aceitar alteração:", err)
+      setMensagemAlteracao({
+        tipo: "erro",
+        texto: err instanceof Error ? err.message : "Não foi possível aceitar a alteração. Tente novamente mais tarde.",
+      })
+    } finally {
+      setProcessandoAlteracao(false)
+    }
+  }
+
+  // Função para recusar alteração de data/hora
+  const handleRecusarAlteracao = async () => {
+    if (!selectedColeta || !selectedColeta.alteracaoPendente) return
+
+    try {
+      setProcessandoAlteracao(true)
+      setMensagemAlteracao(null)
+
+      await recusarAlteracaoDataHora(selectedColeta.alteracaoPendente.id, selectedColeta.id)
+
+      // Atualizar a coleta na interface
+      setSelectedColeta({
+        ...selectedColeta,
+        alteracaoPendente: null,
+      })
+
+      // Atualizar a lista de agendamentos
+      setAgendamentos((prev) =>
+        prev.map((coleta) =>
+          coleta.id === selectedColeta.id
+            ? {
+                ...coleta,
+                alteracaoPendente: null,
+              }
+            : coleta,
+        ),
+      )
+
+      setMensagemAlteracao({
+        tipo: "sucesso",
+        texto: "Alteração de data/hora recusada. A coleta permanecerá na data original.",
+      })
+    } catch (err: unknown) {
+      console.error("Erro ao recusar alteração:", err)
+      setMensagemAlteracao({
+        tipo: "erro",
+        texto: err instanceof Error ? err.message : "Não foi possível recusar a alteração. Tente novamente mais tarde.",
+      })
+    } finally {
+      setProcessandoAlteracao(false)
+    }
+  }
+
+  // Função para extrair componentes de data de uma string de data
+  const extrairComponentesData = (
+    dataString: string,
+  ): {
+    ano: number
+    mes: number
+    dia: number
+    hora: number
+    minuto: number
+  } | null => {
+    // Tenta extrair de formato ISO ou formato com espaço
+    const matchISO = dataString.match(/(\d{4})-(\d{2})-(\d{2})[T\s](\d{2}):(\d{2})/)
+
+    if (matchISO) {
+      return {
+        ano: Number.parseInt(matchISO[1], 10),
+        mes: Number.parseInt(matchISO[2], 10) - 1, // Mês em JS é baseado em zero
+        dia: Number.parseInt(matchISO[3], 10),
+        hora: Number.parseInt(matchISO[4], 10),
+        minuto: Number.parseInt(matchISO[5], 10),
+      }
+    }
+
+    // Tenta extrair de outros formatos possíveis
+    // Por exemplo: "Fri May 15 2025 08:00:00 GMT-0300 (Horário Padrão de Brasília)"
+    const date = new Date(dataString)
+    if (!isNaN(date.getTime())) {
+      return {
+        ano: date.getFullYear(),
+        mes: date.getMonth(),
+        dia: date.getDate(),
+        hora: date.getHours(),
+        minuto: date.getMinutes(),
+      }
+    }
+
+    return null
+  }
+
   // Função para formatar a data
   const formatarData = (dataString: Date | string) => {
-    const data = new Date(dataString)
-    return data.toLocaleDateString("pt-BR", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-      timeZone: "America/Sao_Paulo",
-    })
+    try {
+      // Converter para string se for um objeto Date
+      const dataStr = typeof dataString === "object" ? dataString.toISOString() : String(dataString)
+
+      // Extrair componentes da data
+      const componentes = extrairComponentesData(dataStr)
+
+      if (!componentes) {
+        console.error("Não foi possível extrair componentes da data:", dataStr)
+        return "Data inválida"
+      }
+
+      // Formatar a data no formato brasileiro
+      const dia = String(componentes.dia).padStart(2, "0")
+      const mes = String(componentes.mes + 1).padStart(2, "0") // +1 porque mês em JS é baseado em zero
+      const ano = componentes.ano
+
+      return `${dia}/${mes}/${ano}`
+    } catch (error) {
+      console.error("Erro ao formatar data:", error)
+      return "Data inválida"
+    }
   }
 
   // Função para formatar a hora
   const formatarHora = (dataString: Date | string) => {
-    const data = new Date(dataString)
-    return data.toLocaleTimeString("pt-BR", {
-      hour: "2-digit",
-      minute: "2-digit",
-      timeZone: "America/Sao_Paulo",
-    })
+    try {
+      // Converter para string se for um objeto Date
+      const dataStr = typeof dataString === "object" ? dataString.toISOString() : String(dataString)
+
+      // Extrair componentes da data
+      const componentes = extrairComponentesData(dataStr)
+
+      if (!componentes) {
+        console.error("Não foi possível extrair componentes da data:", dataStr)
+        return "Hora inválida"
+      }
+
+      // Ajustar o fuso horário (subtrair 3 horas para compensar a diferença)
+      let hora = componentes.hora - 3
+
+      // Lidar com horas negativas (caso a subtração resulte em valor negativo)
+      if (hora < 0) {
+        hora += 24
+      }
+
+      // Formatar a hora
+      const horaFormatada = String(hora).padStart(2, "0")
+      const minuto = String(componentes.minuto).padStart(2, "0")
+
+      return `${horaFormatada}:${minuto}`
+    } catch (error) {
+      console.error("Erro ao formatar hora:", error)
+      return "Hora inválida"
+    }
   }
 
   // Função para formatar o endereço resumido
@@ -323,11 +504,21 @@ export default function AgendamentosPage() {
                       <div>
                         <h3 className="text-lg font-bold text-gray-800">Coleta #{agendamento.id.substring(0, 8)}</h3>
                       </div>
-                      <div
-                        className={`px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1.5 ${getStatusColor(agendamento.status_coleta)}`}
-                      >
-                        {getStatusIcon(agendamento.status_coleta)}
-                        {agendamento.status_coleta}
+                      <div className="flex items-center gap-2">
+                        <div
+                          className={`px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1.5 ${getStatusColor(agendamento.status_coleta)}`}
+                        >
+                          {getStatusIcon(agendamento.status_coleta)}
+                          {agendamento.status_coleta}
+                        </div>
+
+                        {/* Indicador de alteração pendente */}
+                        {agendamento.alteracaoPendente && agendamento.status_coleta !== "Cancelado" && (
+                          <div className="px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1.5 bg-amber-100 text-amber-800">
+                            <CalendarClock className="h-4 w-4" />
+                            Alteração pendente
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -342,6 +533,14 @@ export default function AgendamentosPage() {
                           <p className="text-sm text-gray-600">
                             {formatarData(agendamento.data_coleta)} às {formatarHora(agendamento.data_coleta)}
                           </p>
+
+                          {/* Mostrar nova data/hora proposta se houver alteração pendente */}
+                          {agendamento.alteracaoPendente && (
+                            <p className="text-sm text-amber-600 mt-1 font-medium">
+                              Nova proposta: {formatarData(agendamento.alteracaoPendente.dataHoraProposta)} às{" "}
+                              {formatarHora(agendamento.alteracaoPendente.dataHoraProposta)}
+                            </p>
+                          )}
                         </div>
                       </div>
 
@@ -419,6 +618,107 @@ export default function AgendamentosPage() {
                     </button>
                   </div>
                 </div>
+
+                {/* Mensagem de alteração de data/hora */}
+                {selectedColeta.alteracaoPendente &&
+                  !mensagemAlteracao &&
+                  selectedColeta.status_coleta !== "Cancelado" && (
+                    <div className="p-4 rounded-lg mb-6 bg-amber-50 border border-amber-200">
+                      <div className="flex items-start gap-3">
+                        <div className="p-2 rounded-full bg-amber-100 text-amber-600 mt-1">
+                          <CalendarClock className="h-5 w-5" />
+                        </div>
+                        <div>
+                          <h3 className="font-medium text-amber-800 mb-1">Solicitação de alteração de data/hora</h3>
+                          <p className="text-amber-700 mb-3">
+                            A empresa solicitou uma alteração na data/hora da sua coleta. Por favor, analise a nova
+                            proposta e confirme se aceita ou recusa a alteração.
+                          </p>
+                          <div className="grid grid-cols-2 gap-4 mb-4">
+                            <div className="bg-white p-3 rounded-md border border-amber-200">
+                              <p className="text-sm font-medium text-amber-800">Data/hora atual:</p>
+                              <p className="text-sm text-gray-700">
+                                {formatarData(selectedColeta.alteracaoPendente.dataHoraOriginal)} às{" "}
+                                {formatarHora(selectedColeta.alteracaoPendente.dataHoraOriginal)}
+                              </p>
+                            </div>
+                            <div className="bg-white p-3 rounded-md border border-amber-200">
+                              <p className="text-sm font-medium text-amber-800">Nova data/hora proposta:</p>
+                              <p className="text-sm text-gray-700">
+                                {formatarData(selectedColeta.alteracaoPendente.dataHoraProposta)} às{" "}
+                                {formatarHora(selectedColeta.alteracaoPendente.dataHoraProposta)}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex gap-3">
+                            <button
+                              onClick={handleAceitarAlteracao}
+                              className="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md flex items-center justify-center gap-2 transition-colors"
+                              disabled={processandoAlteracao}
+                            >
+                              {processandoAlteracao ? (
+                                <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
+                              ) : (
+                                <ThumbsUp className="h-4 w-4" />
+                              )}
+                              Aceitar alteração
+                            </button>
+                            <button
+                              onClick={handleRecusarAlteracao}
+                              className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-md flex items-center justify-center gap-2 transition-colors"
+                              disabled={processandoAlteracao}
+                            >
+                              {processandoAlteracao ? (
+                                <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
+                              ) : (
+                                <ThumbsDown className="h-4 w-4" />
+                              )}
+                              Recusar alteração
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                {selectedColeta.alteracaoPendente &&
+                  !mensagemAlteracao &&
+                  selectedColeta.status_coleta === "Cancelado" && (
+                    <div className="p-4 rounded-lg mb-6 bg-gray-50 border border-gray-200">
+                      <div className="flex items-start gap-3">
+                        <div className="p-2 rounded-full bg-gray-100 text-gray-600 mt-1">
+                          <CalendarClock className="h-5 w-5" />
+                        </div>
+                        <div>
+                          <h3 className="font-medium text-gray-800 mb-1">Solicitação de alteração não disponível</h3>
+                          <p className="text-gray-700">
+                            Havia uma solicitação de alteração de data/hora para esta coleta, mas como a coleta foi
+                            cancelada, não é mais necessário aceitar ou recusar a alteração.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                {/* Mensagem de resultado da alteração */}
+                {mensagemAlteracao && (
+                  <div
+                    className={`p-4 rounded-lg mb-6 ${
+                      mensagemAlteracao.tipo === "sucesso"
+                        ? "bg-green-100 text-green-800 border border-green-200"
+                        : "bg-red-100 text-red-800 border border-red-200"
+                    }`}
+                  >
+                    <p className="flex items-center gap-2">
+                      {mensagemAlteracao.tipo === "sucesso" ? (
+                        <CheckCircle className="h-5 w-5" />
+                      ) : (
+                        <AlertCircle className="h-5 w-5" />
+                      )}
+                      {mensagemAlteracao.texto}
+                    </p>
+                  </div>
+                )}
 
                 {/* Mensagem de cancelamento */}
                 {mensagemCancelamento && (
@@ -661,4 +961,3 @@ export default function AgendamentosPage() {
     </div>
   )
 }
-

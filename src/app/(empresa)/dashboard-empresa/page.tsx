@@ -23,8 +23,17 @@ import {
   X,
   ThumbsUp,
   ThumbsDown,
+  CalendarClock,
+  HourglassIcon,
 } from "lucide-react"
-import { buscarColetasEmpresa, atualizarStatusColeta, aceitarColeta, recusarColeta } from "./actions"
+import {
+  buscarColetasEmpresa,
+  atualizarStatusColeta,
+  aceitarColeta,
+  recusarColeta,
+  solicitarAlteracaoDataHora,
+  verificarSolicitacaoAlteracaoPendente,
+} from "./actions"
 import Navbar from "@/components/navbar"
 
 // Interfaces para os dados
@@ -61,6 +70,8 @@ interface Coleta {
   endereco?: Endereco
   itens: Item[]
   usuario: Usuario
+  temSolicitacaoPendente?: boolean
+  dataHoraProposta?: string | null
 }
 
 export default function DashboardEmpresa() {
@@ -78,6 +89,13 @@ export default function DashboardEmpresa() {
   const [modalDetalhesAberto, setModalDetalhesAberto] = useState(false)
   const [atualizandoStatus, setAtualizandoStatus] = useState(false)
   const [coletasRecusadas, setColetasRecusadas] = useState<Set<string>>(new Set())
+
+  // Estados para o modal de alteração de data/hora
+  const [modalAlterarDataHoraAberto, setModalAlterarDataHoraAberto] = useState(false)
+  const [novaData, setNovaData] = useState("")
+  const [novaHora, setNovaHora] = useState("")
+  const [enviandoAlteracao, setEnviandoAlteracao] = useState(false)
+  const [mensagemAlteracao, setMensagemAlteracao] = useState<string | null>(null)
 
   // Verificar se o usuário está logado
   useEffect(() => {
@@ -135,11 +153,22 @@ export default function DashboardEmpresa() {
       setLoading(true)
       const dados = await buscarColetasEmpresa()
 
-      // Converter datas para objetos Date
-      const coletasFormatadas = dados.map((coleta) => ({
-        ...coleta,
-        data_coleta: new Date(coleta.data_coleta),
-      }))
+      // Converter datas para objetos Date e verificar solicitações pendentes
+      const coletasFormatadas = await Promise.all(
+        dados.map(async (coleta) => {
+          // Verificar se existe uma solicitação de alteração pendente
+          const solicitacaoPendente = await verificarSolicitacaoAlteracaoPendente(coleta.id)
+
+          return {
+            ...coleta,
+            data_coleta: new Date(coleta.data_coleta),
+            temSolicitacaoPendente: solicitacaoPendente.temSolicitacao,
+            dataHoraProposta: solicitacaoPendente.dataHoraProposta
+              ? String(solicitacaoPendente.dataHoraProposta)
+              : null,
+          }
+        }),
+      )
 
       setColetas(coletasFormatadas)
       setError(null)
@@ -152,17 +181,92 @@ export default function DashboardEmpresa() {
   }
 
   // Função para abrir modal de detalhes
-  const abrirDetalhes = (coleta: Coleta) => {
-    setColetaSelecionada(coleta)
-    setModalDetalhesAberto(true)
-    // Impedir scroll da página quando o modal está aberto
-    document.body.style.overflow = "hidden"
+  const abrirDetalhes = async (coleta: Coleta) => {
+    // Verificar se existe uma solicitação de alteração pendente
+    try {
+      const solicitacaoPendente = await verificarSolicitacaoAlteracaoPendente(coleta.id)
+
+      // Atualizar a coleta com a informação de solicitação pendente
+      const coletaAtualizada = {
+        ...coleta,
+        temSolicitacaoPendente: solicitacaoPendente.temSolicitacao,
+        dataHoraProposta: solicitacaoPendente.dataHoraProposta ? String(solicitacaoPendente.dataHoraProposta) : null,
+      }
+
+      setColetaSelecionada(coletaAtualizada)
+      setModalDetalhesAberto(true)
+      // Impedir scroll da página quando o modal está aberto
+      document.body.style.overflow = "hidden"
+    } catch (err) {
+      console.error("Erro ao verificar solicitação pendente:", err)
+      // Em caso de erro, abrir o modal com os dados que temos
+      setColetaSelecionada(coleta)
+      setModalDetalhesAberto(true)
+      document.body.style.overflow = "hidden"
+    }
   }
 
   // Função para fechar modal de detalhes
   const fecharDetalhes = () => {
     setModalDetalhesAberto(false)
     document.body.style.overflow = "auto"
+  }
+
+  // Função para abrir modal de alteração de data/hora
+  const abrirModalAlterarDataHora = () => {
+    if (coletaSelecionada) {
+      const dataAtual = new Date(coletaSelecionada.data_coleta)
+      setNovaData(dataAtual.toISOString().split("T")[0])
+      setNovaHora(`${String(dataAtual.getHours()).padStart(2, "0")}:${String(dataAtual.getMinutes()).padStart(2, "0")}`)
+      setMensagemAlteracao(null)
+      setModalAlterarDataHoraAberto(true)
+    }
+  }
+
+  // Função para fechar modal de alteração de data/hora
+  const fecharModalAlterarDataHora = () => {
+    setModalAlterarDataHoraAberto(false)
+    setMensagemAlteracao(null)
+  }
+
+  // Função para enviar solicitação de alteração de data/hora
+  const enviarSolicitacaoAlteracaoDataHora = async () => {
+    if (!coletaSelecionada || !novaData || !novaHora) return
+
+    try {
+      setEnviandoAlteracao(true)
+
+      // Criar objeto de data a partir dos inputs
+      const [ano, mes, dia] = novaData.split("-").map(Number)
+      const [hora, minuto] = novaHora.split(":").map(Number)
+      const novaDataHora = new Date(ano, mes - 1, dia, hora, minuto)
+
+      await solicitarAlteracaoDataHora(coletaSelecionada.id, novaDataHora.toISOString())
+
+      setMensagemAlteracao("Solicitação de alteração enviada com sucesso! Aguardando confirmação do cliente.")
+
+      // Atualizar a coleta selecionada com a nova data pendente
+      if (coletaSelecionada) {
+        setColetaSelecionada({
+          ...coletaSelecionada,
+          temSolicitacaoPendente: true,
+          dataHoraProposta: novaDataHora.toISOString(),
+        })
+      }
+
+      // Atualizar a lista de coletas
+      await carregarColetas()
+
+      // Fechar o modal após alguns segundos
+      setTimeout(() => {
+        fecharModalAlterarDataHora()
+      }, 3000)
+    } catch (err: unknown) {
+      console.error("Erro ao solicitar alteração de data/hora:", err)
+      setMensagemAlteracao(err instanceof Error ? err.message : "Erro ao solicitar alteração de data/hora")
+    } finally {
+      setEnviandoAlteracao(false)
+    }
   }
 
   // Função para aceitar uma coleta
@@ -210,7 +314,7 @@ export default function DashboardEmpresa() {
     try {
       if (!session?.session.activeOrganizationId) return
       setAtualizandoStatus(true)
-      await recusarColeta(coletaId,session?.session.activeOrganizationId)
+      await recusarColeta(coletaId, session?.session.activeOrganizationId)
 
       // Adicionar à lista de coletas recusadas
       setColetasRecusadas((prev) => new Set(prev).add(coletaId))
@@ -682,6 +786,21 @@ export default function DashboardEmpresa() {
                           {coletaSelecionada.status_coleta}
                         </span>
                       </div>
+
+                      {/* Mostrar informação sobre solicitação de alteração pendente */}
+                      {coletaSelecionada.temSolicitacaoPendente && (
+                        <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-md">
+                          <div className="flex items-center gap-2 text-amber-700 mb-1">
+                            <HourglassIcon className="h-4 w-4" />
+                            <span className="font-medium">Alteração de data/hora solicitada</span>
+                          </div>
+                          <p className="text-sm text-amber-600">
+                            Nova data/hora proposta: {formatarData(coletaSelecionada.dataHoraProposta || "")} às{" "}
+                            {formatarHora(coletaSelecionada.dataHoraProposta || "")}
+                          </p>
+                          <p className="text-sm text-amber-600 mt-1">Aguardando confirmação do cliente.</p>
+                        </div>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
@@ -770,6 +889,20 @@ export default function DashboardEmpresa() {
               {/* Ações */}
               <div className="space-y-4">
                 <div className="flex flex-wrap gap-2">
+                  {/* Botão para trocar data ou horário - só aparece se não houver solicitação pendente */}
+                  {isColetaDaEmpresa(coletaSelecionada) &&
+                    (coletaSelecionada.status_coleta === "Confirmado" ||
+                      coletaSelecionada.status_coleta === "Solicitado") &&
+                    !coletaSelecionada.temSolicitacaoPendente && (
+                      <Button
+                        onClick={abrirModalAlterarDataHora}
+                        className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2"
+                      >
+                        <CalendarClock className="h-4 w-4" />
+                        Trocar data ou horário
+                      </Button>
+                    )}
+
                   {/* Botões para coletas disponíveis */}
                   {isColetaDisponivel(coletaSelecionada) && (
                     <>
@@ -837,6 +970,104 @@ export default function DashboardEmpresa() {
                       Atualizando...
                     </span>
                   )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal para Alterar Data/Hora */}
+      {modalAlterarDataHoraAberto && coletaSelecionada && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md">
+            <div className="p-6">
+              {/* Header */}
+              <div className="flex justify-between items-start mb-6">
+                <div className="flex items-center gap-2">
+                  <div className="p-2 rounded-full bg-blue-100 text-blue-600">
+                    <CalendarClock className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold text-gray-800">Alterar Data/Hora</h2>
+                    <p className="text-sm text-gray-500">Coleta #{coletaSelecionada.id.substring(0, 8)}</p>
+                  </div>
+                </div>
+                <button
+                  onClick={fecharModalAlterarDataHora}
+                  className="p-1 rounded-full hover:bg-gray-100 text-gray-500"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+
+              {/* Aviso */}
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+                <p className="text-sm text-yellow-800">
+                  <strong>Atenção:</strong> O cliente precisará aceitar a nova data e horário propostos. Ele será
+                  notificado sobre esta alteração e poderá aceitar ou recusar.
+                </p>
+              </div>
+
+              {/* Formulário */}
+              <div className="space-y-4">
+                <div>
+                  <label htmlFor="nova-data" className="block text-sm font-medium text-gray-700 mb-1">
+                    Nova Data
+                  </label>
+                  <input
+                    type="date"
+                    id="nova-data"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    value={novaData}
+                    onChange={(e) => setNovaData(e.target.value)}
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="nova-hora" className="block text-sm font-medium text-gray-700 mb-1">
+                    Novo Horário
+                  </label>
+                  <input
+                    type="time"
+                    id="nova-hora"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    value={novaHora}
+                    onChange={(e) => setNovaHora(e.target.value)}
+                  />
+                </div>
+
+                {mensagemAlteracao && (
+                  <div
+                    className={`p-3 rounded-md ${mensagemAlteracao.includes("sucesso") ? "bg-green-50 text-green-800" : "bg-red-50 text-red-800"}`}
+                  >
+                    {mensagemAlteracao}
+                  </div>
+                )}
+
+                <div className="flex justify-end gap-2 pt-2">
+                  <Button
+                    variant="outline"
+                    onClick={fecharModalAlterarDataHora}
+                    className="border-gray-300"
+                    disabled={enviandoAlteracao}
+                  >
+                    Cancelar
+                  </Button>
+                  <Button
+                    onClick={enviarSolicitacaoAlteracaoDataHora}
+                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                    disabled={enviandoAlteracao || !novaData || !novaHora}
+                  >
+                    {enviandoAlteracao ? (
+                      <>
+                        <RefreshCw className="h-4 w-4 animate-spin mr-2" />
+                        Enviando...
+                      </>
+                    ) : (
+                      "Solicitar Alteração"
+                    )}
+                  </Button>
                 </div>
               </div>
             </div>
@@ -916,6 +1147,14 @@ function ListaColetas({
                 {/* Indicador de coleta disponível */}
                 {isColetaDisponivel(coleta) && (
                   <span className="bg-blue-500 text-white text-xs px-2 py-0.5 rounded">Disponível</span>
+                )}
+
+                {/* Indicador de alteração pendente */}
+                {coleta.temSolicitacaoPendente && (
+                  <span className="bg-amber-500 text-white text-xs px-2 py-0.5 rounded flex items-center gap-1">
+                    <HourglassIcon className="h-3 w-3" />
+                    <span>Alteração pendente</span>
+                  </span>
                 )}
               </div>
             </div>
@@ -1032,4 +1271,3 @@ function ListaColetas({
     </div>
   )
 }
-

@@ -165,3 +165,21 @@ export const invitation = pgTable("invitation", {
     .notNull()
     .references(() => user.id, { onDelete: "cascade" }),
 });
+
+export const alteracoesDataHora = pgTable('alteracoes_data_hora', {
+  id: uuid('id').primaryKey().notNull().defaultRandom(),
+  coleta_id: uuid('coleta_id')
+    .notNull()
+    .references(() => coletaTable.id, { onDelete: 'cascade' }),
+  data_hora_original: timestamp('data_hora_original').notNull(),
+  data_hora_proposta: timestamp('data_hora_proposta').notNull(),
+  status: varchar('status', { length: 20 }).notNull().default('Pendente'),
+  solicitado_por: varchar('solicitado_por', { length: 20 }).notNull(),
+  empresa_id: text('empresa_id')
+    .notNull()
+    .references(() => organization.id),
+  cliente_notificado: boolean('cliente_notificado').default(false),
+  motivo_alteracao: varchar('motivo_alteracao', { length: 300 }),
+  created_at: timestamp('created_at').notNull().defaultNow(),
+  updated_at: timestamp('updated_at').notNull().defaultNow(),
+});
