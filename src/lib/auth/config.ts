@@ -17,7 +17,7 @@ export const auth = betterAuth({
       resend.emails.send({
         from: "contato@ecoleta.online",
         to: user.email,
-        subject: "Salve do e-coleta",
+        subject: "Seu código acabou de chegar!",
         html: await render(PasswordResetEmail(token)),
       });
     },
