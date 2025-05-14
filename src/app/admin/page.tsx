@@ -75,7 +75,7 @@ export default function AdminPage() {
   // Estados para paginação
   const [paginaAtualClientes, setPaginaAtualClientes] = useState(1)
   const [paginaAtualEmpresas, setPaginaAtualEmpresas] = useState(1)
-  const [itensPorPagina, setItensPorPagina] = useState(10)
+  const [itensPorPagina] = useState(10)
 
   // Estados para modais
   const [clienteSelecionado, setClienteSelecionado] = useState<Cliente | null>(null)
