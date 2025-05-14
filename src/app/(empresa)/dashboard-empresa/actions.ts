@@ -3,7 +3,7 @@
 import { auth } from "@/lib/auth/config"
 import { db } from "@/lib/db/client"
 import { organization, member, coletaTable, enderecoTable, itensTable, user, coletasRecusadas } from "@/lib/db/schema"
-import { eq, and, isNull, or } from "drizzle-orm"
+import { eq, and, isNull, or, sql } from "drizzle-orm"
 import { headers } from "next/headers"
 import { desc } from "drizzle-orm"
 
@@ -69,8 +69,6 @@ export async function buscarColetasEmpresa() {
       throw new Error("Empresa não encontrada para este usuário")
     }
 
-    
-
     // Buscar coletas que:
     // 1. Pertencem à empresa do usuário (qualquer status)
     // 2. OU têm status "Solicitado" e não estão associadas a nenhuma empresa
@@ -87,12 +85,9 @@ export async function buscarColetasEmpresa() {
 
     // Para cada coleta, buscar informações relacionadas
     for (const coleta of coletas) {
+      const [isRecusada] = await db.select().from(coletasRecusadas).where(eq(coletasRecusadas.coletaId, coleta.id))
 
-      const [isRecusada] = await db.select()
-      .from(coletasRecusadas)
-      .where(eq(coletasRecusadas.coletaId,coleta.id))
-
-      if (isRecusada) continue;
+      if (isRecusada) continue
 
       // Buscar endereço
       const endereco = await db.query.enderecoTable.findFirst({
@@ -193,7 +188,7 @@ export async function aceitarColeta(coletaId: string) {
 }
 
 // Função para recusar uma coleta (apenas remove da lista de disponíveis para esta empresa)
-export async function recusarColeta(coletaId: string, organizationId:string) {
+export async function recusarColeta(coletaId: string, organizationId: string) {
   try {
     // Verificar autenticação
     const sessao = await auth.api.getSession({
@@ -204,9 +199,10 @@ export async function recusarColeta(coletaId: string, organizationId:string) {
       throw new Error("Não autorizado: Usuário não está autenticado")
     }
 
-   await db.insert(coletasRecusadas).values({
-    coletaId, organizationId
-   })
+    await db.insert(coletasRecusadas).values({
+      coletaId,
+      organizationId,
+    })
     return { success: true }
   } catch (error: unknown) {
     console.error("Erro ao recusar coleta:", error)
@@ -263,3 +259,104 @@ export async function atualizarStatusColeta(coletaId: string, novoStatus: string
   }
 }
 
+// Função para solicitar alteração de data/hora da coleta
+export async function solicitarAlteracaoDataHora(coletaId: string, novaDataHora: string) {
+  try {
+    // Obter a sessão do usuário
+    const sessao = await auth.api.getSession({
+      headers: await headers(),
+    })
+
+    if (!sessao) {
+      throw new Error("Não autorizado: Usuário não está autenticado")
+    }
+
+    // Buscar a relação do usuário com a organização na tabela member
+    const membroOrganizacao = await db.query.member.findFirst({
+      where: eq(member.userId, sessao.user.id),
+    })
+
+    if (!membroOrganizacao) {
+      throw new Error("Usuário não está associado a nenhuma empresa")
+    }
+
+    // Buscar a organização usando o ID encontrado na tabela member
+    const empresaUsuario = await db.query.organization.findFirst({
+      where: eq(organization.id, membroOrganizacao.organizationId),
+    })
+
+    if (!empresaUsuario) {
+      throw new Error("Empresa não encontrada para este usuário")
+    }
+
+    // Verificar se a coleta existe e pertence à empresa
+    const coleta = await db.query.coletaTable.findFirst({
+      where: and(eq(coletaTable.id, coletaId), eq(coletaTable.id_empresa, empresaUsuario.id)),
+    })
+
+    if (!coleta) {
+      throw new Error("Coleta não encontrada ou não pertence a esta empresa")
+    }
+
+    // Verificar se o status permite alteração de data/hora
+    if (coleta.status_coleta !== "Confirmado" && coleta.status_coleta !== "Solicitado") {
+      throw new Error("Só é possível alterar a data/hora de coletas com status 'Solicitado' ou 'Confirmado'")
+    }
+
+    // Registrar a solicitação de alteração usando SQL direto
+    await db.execute(sql`
+      INSERT INTO alteracoes_data_hora (
+        coleta_id, 
+        data_hora_original, 
+        data_hora_proposta, 
+        status, 
+        solicitado_por, 
+        empresa_id
+      ) 
+      VALUES (
+        ${coletaId}, 
+        ${coleta.data_coleta.toISOString()}, 
+        ${novaDataHora}, 
+        'Pendente', 
+        'Empresa', 
+        ${empresaUsuario.id}
+      )
+    `)
+
+    // Aqui você poderia enviar uma notificação para o cliente
+    // sobre a solicitação de alteração de data/hora
+
+    return { success: true }
+  } catch (error: unknown) {
+    console.error("Erro ao solicitar alteração de data/hora:", error)
+    throw new Error(error instanceof Error ? error.message : "Erro ao solicitar alteração de data/hora")
+  }
+}
+
+// Função para verificar se existe uma solicitação de alteração pendente
+export async function verificarSolicitacaoAlteracaoPendente(coletaId: string) {
+  try {
+    // Buscar solicitação pendente
+    const result = await db.execute(sql`
+      SELECT data_hora_proposta 
+      FROM alteracoes_data_hora 
+      WHERE coleta_id = ${coletaId} 
+      AND status = 'Pendente' 
+      ORDER BY created_at DESC 
+      LIMIT 1
+    `)
+
+    // Verificar se há resultados
+    if (result && result.rows && result.rows.length > 0) {
+      return {
+        temSolicitacao: true,
+        dataHoraProposta: result.rows[0].data_hora_proposta ? String(result.rows[0].data_hora_proposta) : null,
+      }
+    }
+
+    return { temSolicitacao: false, dataHoraProposta: null }
+  } catch (error: unknown) {
+    console.error("Erro ao verificar solicitação pendente:", error)
+    return { temSolicitacao: false, dataHoraProposta: null }
+  }
+}
