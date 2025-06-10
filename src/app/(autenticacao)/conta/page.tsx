@@ -254,7 +254,7 @@ export default function MinhaContaPage() {
       const resultado = await changePassword({
         newPassword: passwordForm.novaSenha,
         currentPassword: passwordForm.senhaAtual,
-        revokeOtherSessions: true, // revoke all other sessions the user is signed into
+        revokeOtherSessions: true, 
       });
 
       if (!resultado.error) {
