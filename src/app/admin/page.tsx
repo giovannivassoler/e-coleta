@@ -98,6 +98,17 @@ export default function AdminPage() {
   // Estados para filtros e buscas
   const [termoBuscaUsuarios, setTermoBuscaUsuarios] = useState("")
   const [termoBuscaEmpresas, setTermoBuscaEmpresas] = useState("")
+<<<<<<< HEAD
+=======
+  const [filtroEstadoClientes, setFiltroEstadoClientes] = useState("todos")
+  const [filtroEstadoEmpresas, setFiltroEstadoEmpresas] = useState("todos")
+  const [filtroStatusEmpresas, setFiltroStatusEmpresas] = useState("todos")
+
+  // Estados para paginação
+  const [paginaAtualClientes, setPaginaAtualClientes] = useState(1)
+  const [paginaAtualEmpresas, setPaginaAtualEmpresas] = useState(1)
+  const [itensPorPagina] = useState(10)
+>>>>>>> a2254c241b96afc25981e4c920f440364c811978
 
   // Estados para modais
   const [usuarioSelecionado, setUsuarioSelecionado] = useState<Usuario | null>(null)
