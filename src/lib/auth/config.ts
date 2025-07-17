@@ -21,6 +21,7 @@ export const auth = betterAuth({
         html: await render(PasswordResetEmail(token)),
       });
     },
+
   },
-  plugins: [organization({})],
+  plugins: [organization()],
 });
